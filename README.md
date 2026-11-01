@@ -1,128 +1,82 @@
-# LenovoLegionToolkit Plugins
+# LenovoLegionToolkit Plugins: CustomFanCurve fixes for Legion 5 16IRX9
 
-Modular, DLL-based plugins that extend the core functionality of Lenovo Legion Toolkit (LLT).
+This is a fork of [LenovoLegionToolkit-Team/LenovoLegionToolkit-Plugins](https://github.com/LenovoLegionToolkit-Team/LenovoLegionToolkit-Plugins). It fixes the **CustomFanCurve** plugin on Lenovo Legion models whose firmware handles WMI fan control differently from what the plugin expects.
 
-## Available Plugins
+## Why this fork exists
 
-### CustomFanCurve
-Provides advanced, algorithm-driven control over the cooling system on supported Legion devices via WMI. 
+On a **Legion 5 16IRX9** (machine type 83DG, BIOS NMCN34WW), the upstream plugin did not work:
 
-**Features:**
-- CPU/GPU/System fan monitoring with custom UI curve adjustments.
-- **Predictive Engine:** Calculus-based derivative lookahead ($dT/dt$) to proactively spool up fans before thermal saturation.
-- **Acoustic Tuning:** Harmonic interference prevention that mathematically shifts fan RPMs to cancel out annoying beat frequencies.
-- **Thermal Smoothing & Hysteresis:** Exponential Moving Average (EMA) and deadzone buffers to prevent rapid fan cycling and jitter.
-- **Thermal Safety Net:** Emergency override protection that automatically ramps up fans if temperatures approach critical thresholds, regardless of the active curve settings.
-- **Smart Auto Mode:** Fuzzy-logic powered auto control that smoothly scales fans using continuous thermal and power load gradients.
-- **Asymmetric Step-Down:** Smooth fan deceleration curves to mitigate audible chopping and prevent physical bearing wear.
-- **Spin-Up Boost:** Applies a brief, high-RPM burst when starting a fan from 0 RPM to reliably overcome physical bearing static friction.
-- **Fan Speed Synchronization:** Automatically scales all fans to match the highest relative speed percentage demanded by the system, balancing airflow.
-- **Full Speed Mode:** A quick override to instantly trigger all fans to run at 100% maximum speed.
+- **Custom curve mode:** the CPU fan ran at 100% whatever the curve said.
+- **Smart Auto (AI) mode:**
+  - At idle, the fans burst by up to +1,500 RPM every 5–10 seconds.
+  - The fans never settled. At idle the BIOS took over and wandered between 1,700 and 1,900 RPM.
+  - In games, the fans swung up and down with every temperature peak.
 
-# Screenshots
+The suggested cause was that the machine is incompatible with WMI mode and needs EC (embedded controller) mode. That turned out to be wrong. WMI fan control works on this machine; the plugin was sending values that this firmware reads differently.
 
-### CustomFanCurve
-<img src="assets/Dashboard.png" width="55%" /> <img src="assets/Settings.png" width="43%" />
+Only the 16IRX9 has been tested. Other Legion models with the same firmware behaviour are likely affected too.
 
-## Developing a Plugin
+## What was wrong in the upstream plugin
 
-To create a new plugin for LLT:
+**1. Fan speeds were written in the wrong units.**
+This firmware reads the `SetFeatureValue` fan speed as a single byte in units of 100 RPM. It keeps only the lowest byte of the raw RPM value the plugin sends. Measured over WMI:
 
-1. **Create a .NET Class Library**: Target the same .NET framework as the core LLT application (e.g., `net9.0-windows10.0.26100`).
-2. **Add Project References**: Reference `LenovoLegionToolkit.Lib` in your `.csproj`. Set `<Private>false</Private>` and `<ExcludeAssets>runtime</ExcludeAssets>` to prevent bundling core dependencies into your plugin.
-3. **Implement `IExtensionProvider`**: Create a public class that implements `LenovoLegionToolkit.Lib.Station.Core.IExtensionProvider`. The application discovers plugins by scanning for this interface at load time.
-4. **Register Navigation**: In your `Initialize(IExtensionContext context)` method, register your UI pages via `context.Navigation.Register()`. Use `TitleGetter` to return localized strings from your `.resx` files.
-5. **Use Logger**: Use `context.Logger.Trace(string message)` and `context.Logger.Error(string message, Exception ex)` to write logs. The host application automatically routes these logs to `%LOCALAPPDATA%\LenovoLegionToolkit\log\plugin_{pluginId}.log` and handles thread-safety and startup log rotation.
+| Plugin writes | Firmware keeps | Measured fan speed |
+|---|---|---|
+| 1048 | 24 | 2,400 RPM |
+| 1800 | 8 | 800 RPM |
+| 1500 – 5000 | 136 – 220 | full speed (5,600 RPM) |
 
-Example `Provider.cs`:
-```csharp
-using System;
-using System.Threading.Tasks;
-using LenovoLegionToolkit.Lib.Station.Core;
-using LenovoLegionToolkit.Lib.Station.Services;
+Most curve targets therefore landed on a high byte and ran the fan at full speed. Reading fan speeds was never affected, since reads return plain RPM.
 
-namespace MyPlugin;
+**2. Keep-alive writes made the fans oscillate.**
+With "Always write RPM" on, the plugin re-sent the same value every 2.5 seconds. Each write restarted the firmware's speed regulation. At a steady target the fan dipped and overshot between 1,200 and 1,500 RPM, in step with the writes.
 
-public sealed class MyPluginProvider : IExtensionProvider
-{
-    public void Initialize(IExtensionContext context)
-    {
-        context.Logger.Trace("Initializing MyPlugin...");
+**3. Smart Auto reacted to short power spikes.**
+Up to 40% of the fan speed came straight from the momentary CPU power draw, with no smoothing. Opening an app was enough to make the fans burst.
 
-        context.Navigation.Register(new ExtensionNavigationItem
-        {
-            Id = "my-plugin-id",
-            TitleGetter = () => "My Plugin Name",
-            PageTag = "my_plugin_tag",
-            PageType = typeof(MyPluginPage), // Must be a WPF Page/UserControl
-            Icon = ExtensionIcon.Gauge
-        });
-    }
+**4. Smart Auto handed idle control to the BIOS.**
+At idle, the Smart Auto target (about 885 RPM) was below the fan minimum. The plugin then wrote `0`, which on Lenovo firmware means "BIOS, take over". It re-sent that every 2.5 seconds, so the BIOS's own fluctuating idle speed ran the fans.
 
-    public Task ExecuteAsync(string action, params object[] args) => Task.CompletedTask;
-    
-    public object? GetData(string key) => null;
-    
-    public void SetData(string key, object? value) { }
-    
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
-}
+**5. Smart Auto's power range was fixed at 20–65 W.**
+The GPU in this laptop draws up to 140 W, so any game counted as full load. That kept the GPU fan near maximum regardless of how hard the GPU was actually working.
+
+## What was fixed and how
+
+| Problem | Fix |
+|---|---|
+| 1. Wrong units | New `WriteRpmInHundreds` setting. When on, every write is converted to hundreds of RPM (1,800 → 18). |
+| 2. Keep-alive oscillation | Turn off the existing `AlwaysWriteRpm` setting. No code change needed. |
+| 3. Power spikes | New *ramp gate* between Smart Auto and the fans, described below. |
+| 4. BIOS idle handoff | Smart Auto now holds the fan minimum instead of writing `0`. Custom curve mode is unchanged. |
+| 5. Fixed power range | Idle and full-load watts are now settings, separately for CPU and GPU. |
+
+The ramp gate works like this:
+- **Short spikes are ignored.** A higher demand must last 5 seconds before the fans respond. The wait shrinks as the temperature approaches 85°C, so a real heat-up, such as a game starting, gets a fast response. A single hot reading never triggers it.
+- **Ramps are smooth.** The fans ramp up gradually. When demand drops, they hold for 3 seconds, then glide down.
+- **Games get steadier fans.** Repeated ramp-ups within 2 minutes switch to longer holds (15 s), a slower glide down and gentler climbs. The fans then stay steady between peaks instead of following every one.
+- **Safety isn't delayed.** At 90°C the fans respond instantly, and the existing 95°C critical override is unchanged.
+
+**Results on the 16IRX9:**
+- Idle: a flat 1,000 RPM instead of the BIOS's 1,700–1,900 RPM.
+- Light use: no fan bursts.
+- Gaming: fans respond in seconds and stay steadier between peaks.
+
+### Enabling the fixes
+
+All new settings default to the upstream behaviour, so nothing changes until you set them. They are not in the plugin's settings screen yet. With Legion Toolkit closed, add or adjust them in `%LOCALAPPDATA%\LenovoLegionToolkit\Plugins\Configs\CustomFanCurve\custom_fan_curve_settings.json`:
+
+```json
+"WriteRpmInHundreds": true,
+"AlwaysWriteRpm": false,
+"SmartCpuIdlePowerW": 20,
+"SmartCpuFullPowerW": 70,
+"SmartGpuIdlePowerW": 20,
+"SmartGpuFullPowerW": 140,
 ```
 
-## Building
+Set the power values to your own limits: the CPU long-term power limit, and the GPU TGP plus Dynamic Boost.
 
-### Prerequisites
-1. [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-2. The core `LenovoLegionToolkit` repository must be cloned locally.
-3. Set the `LLT_SOURCE` environment variable to point to the core repo root.
+Your machine probably needs `WriteRpmInHundreds` if custom curves run the fans at full speed, or if the measured fan speeds bear no relation to the targets shown in the plugin.
 
-```bash
-# System environment variable (recommended)
-setx LLT_SOURCE "C:\Path\To\LenovoLegionToolkit"
-
-# Or per-session
-set LLT_SOURCE=C:\Path\To\LenovoLegionToolkit
-```
-
-### Build All Plugins
-```bash
-dotnet build LenovoLegionToolkit-Plugins.slnx -c Release
-```
-
-### Build a Single Plugin
-```bash
-dotnet build CustomFanCurve/CustomFanCurve.csproj -c Release
-dotnet build AssemblyVersionPatcher/AssemblyVersionPatcher.csproj -c Release
-```
-
-### Publish a Plugin for Deployment
-```bash
-dotnet publish CustomFanCurve/CustomFanCurve.csproj -c Release -o out/Plugins/CustomFanCurve
-```
-
-Once compiled, deploy your single `PluginName.dll` file to the LLT plugins directory (all language resources are automatically embedded into the DLL):
-`%LOCALAPPDATA%\LenovoLegionToolkit\Plugins\PluginName\`
-
-## Localization
-
-Translations are handled via standard .NET Satellite Assemblies.
-
-1. Navigate to the `Resources` directory within the plugin project.
-2. Duplicate `Resource.resx` and rename it for the target culture (e.g., `Resource.zh-hans.resx`).
-3. Add the IETF language tag to the `<SatelliteResourceLanguages>` property in the plugin's `.csproj`.
-4. Compile the plugin. The custom MSBuild target will automatically generate and embed the culture-specific satellite assemblies directly into your main `.dll`.
-
-## Automated Releases
-
-Releases are fully automated via GitHub Actions to ensure clean and consistent plugin packaging.
-
-1. Navigate to the **Actions** tab on GitHub.
-2. Select **Publish Release** on the left menu.
-3. Click **Run workflow**, choose your target channel (`Stable` or `Beta`), and enter the tag you'd like to use (e.g. `latest` or `v1.2`).
-
-The GitHub Action will automatically:
-- Spin up a runner and pull the core application dependencies.
-- Compile all plugins in the repository and embed their localizations.
-- Zip the core `.dll` of each plugin independently.
-- Detect which plugin folders were modified since the last release tag.
-- Draft a new GitHub Release with the updated plugins automatically listed in the changelog, pending manual publication.
+The changes are on the [`fix/wmi-units-and-smart-auto`](https://github.com/OddGentleman/LenovoLegionToolkit-Plugins/tree/fix/wmi-units-and-smart-auto) branch as separate commits, intended for upstream. For build instructions, see the [upstream README](https://github.com/LenovoLegionToolkit-Team/LenovoLegionToolkit-Plugins#building).
