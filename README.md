@@ -6,10 +6,11 @@ This is a fork of [LenovoLegionToolkit-Team/LenovoLegionToolkit-Plugins](https:/
 
 On a **Legion 5 16IRX9** (machine type 83DG, BIOS NMCN34WW), the upstream plugin did not work:
 
-- **Custom curve mode:** the CPU fan ran at 100% whatever the curve said.
+- **Custom curve mode:** the fan curve didn't apply. CPU fan always at 100%.
 - **Smart Auto (AI) mode:**
-  - At idle, the fans burst by up to +1,500 RPM every 5–10 seconds.
+  - At idle, the fans burst by up to +1,500 RPM from any powerdraw rise although temps rose only by 1-2C.
   - The fans never settled. At idle the BIOS took over and wandered between 1,700 and 1,900 RPM.
+  - Target 0 RPM is not supported.
   - In games, the fans swung up and down with every temperature peak.
 
 The plugin was sending values that this firmware reads differently.
