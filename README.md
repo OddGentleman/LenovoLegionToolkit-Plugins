@@ -48,8 +48,8 @@ The GPU in this laptop draws up to 140 W, so any game counted as full load. That
 |---|---|
 | 1. Wrong units | New `WriteRpmInHundreds` setting. When on, every write is converted to hundreds of RPM (1,800 → 18). |
 | 2. Keep-alive oscillation | Turn off the existing `AlwaysWriteRpm` setting. No code change needed. |
-| 3. Power spikes | New *ramp gate* between Smart Auto and the fans, described below. |
-| 4. BIOS idle handoff | Smart Auto now holds the fan minimum instead of writing `0`. Custom curve mode is unchanged. |
+| 3. Power spikes | New *ramp gate* between Smart Auto and the fans, described below. On by default, with a **Spike Filter** switch under Settings → Advanced. |
+| 4. BIOS idle handoff | New **Hold Minimum Speed at Idle** switch under Settings → Advanced (off by default). When on, Smart Auto holds the fan minimum instead of writing `0`. Custom curve mode is unchanged. |
 | 5. Fixed power range | Idle and full-load watts are now settings, separately for CPU and GPU. |
 | Confusing settings | Settings that Smart Auto ignores are now greyed out with a "Not used while Smart Auto is on" note: calculation interval, temperature/power delta filters, hysteresis, step-down gliding and spin-up boost. |
 
@@ -93,9 +93,13 @@ These changes are on `main` only, not in the upstream proposal. They were checke
 
 ### Enabling the fixes
 
-All new settings default to the upstream behaviour, so nothing changes until you set them. They are not in the plugin's settings screen yet. With Legion Toolkit closed, add or adjust them in `%LOCALAPPDATA%\LenovoLegionToolkit\Plugins\Configs\CustomFanCurve\custom_fan_curve_settings.json`:
+The Spike Filter is on by default. Every other new setting defaults to the upstream behaviour, so nothing else changes until you set it.
+
+- **In the settings screen** (Settings → Advanced): turn on **Hold Minimum Speed at Idle**.
+- **In the config file:** the rest aren't in the settings screen yet. With Legion Toolkit closed, add or adjust them in `%LOCALAPPDATA%\LenovoLegionToolkit\Plugins\Configs\CustomFanCurve\custom_fan_curve_settings.json`:
 
 ```json
+"SmartHoldMinimumAtIdle": true,
 "WriteRpmInHundreds": true,
 "AlwaysWriteRpm": false,
 "SmartCpuIdlePowerW": 20,
