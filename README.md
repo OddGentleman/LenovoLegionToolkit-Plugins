@@ -63,6 +63,33 @@ The ramp gate works like this:
 - Light use: no fan bursts.
 - Gaming: fans respond in seconds and stay steadier between peaks.
 
+### Further tuning in this fork only
+
+These changes are on `main` only, not in the upstream proposal. They were checked against 3.5 hours of debug logs from the 16IRX9.
+
+**Duplicate writes are skipped.** In hundreds mode, two different RPM targets can land on the same firmware step (for example 3,110 and 3,140 both become 31). Re-sending the same step restarts the firmware's speed regulation, the same wobble described in problem 2. About 16% of all writes did that. The plugin now treats a change within the same step as no change. A fan that has drifted far from its target is still re-sent its value.
+
+**Fan Speed Sync no longer re-writes every cycle.** Whenever Sync raised a fan's target, it forced a write even when the fan already had that value. It now writes only real changes.
+
+**Acoustic Tuning was adapted.** It offsets the second fan slightly so the two fans don't hum at almost the same pitch (beating).
+- **It's skipped at idle.** As shipped, it would have fired in 45% of cycles, and 95% of those were both fans idling at minimum. There it only made the idle GPU fan louder.
+- **It no longer toggles.** Once active, it stays on until the fans drift further apart, instead of switching on and off around the 100 RPM threshold.
+- **It works in whole firmware steps.** In hundreds mode, a 150 RPM offset rounded unpredictably to +100 or +200 RPM. The second fan is now placed whole 100 RPM steps away, or left alone if the fans already land on different steps.
+
+**EMA temperature smoothing is time-based.** The smoothing factor used to apply per sensor reading, but readings arrive anywhere from 0.5 to over 6 seconds apart. `EmaAlpha` is now the weight per second. At 0.35/s, on this laptop's CPU, it removes about 70% of reading-to-reading jitter (sharp 4°C+ jumps went from 82 to 3 in the test log). On a real heat-up it lags only 2–4°C for a few seconds. Emergency and safety checks still use the raw temperatures.
+
+**Other settings for Smart Auto on this laptop:**
+
+| Setting | Recommendation | Why |
+|---|---|---|
+| EMA smoothing | **On, 0.35** | Steadier fan targets from a jittery CPU temperature |
+| Acoustic Tuning | Optional | Helps only if you hear the fans beating at similar speeds |
+| Fan Speed Sync | Off | The CPU does most daily work; Sync would spin up the idle GPU fan. The Thermal Safety Net already brings in both fans above 75°C. |
+| Predictive Engine | **Off** | On this CPU it would have fired 77 times in 3.5 hours of desktop use, sending the fans to maximum 39 times |
+| Hysteresis | Off | Only applies to curve mode |
+| Asymmetric Step-Down | Off | Smart Auto's ramp gate already glides down |
+| Spin-Up Boost | Off | Only fires when a fan starts from 0 RPM, which Smart Auto no longer sends |
+
 ### Enabling the fixes
 
 All new settings default to the upstream behaviour, so nothing changes until you set them. They are not in the plugin's settings screen yet. With Legion Toolkit closed, add or adjust them in `%LOCALAPPDATA%\LenovoLegionToolkit\Plugins\Configs\CustomFanCurve\custom_fan_curve_settings.json`:
@@ -74,10 +101,12 @@ All new settings default to the upstream behaviour, so nothing changes until you
 "SmartCpuFullPowerW": 70,
 "SmartGpuIdlePowerW": 20,
 "SmartGpuFullPowerW": 140,
+"EnableEma": true,
+"EmaAlpha": 0.35,
 ```
 
 Set the power values to your own limits: the CPU long-term power limit, and the GPU TGP plus Dynamic Boost.
 
 Your machine probably needs `WriteRpmInHundreds` if custom curves run the fans at full speed, or if the measured fan speeds bear no relation to the targets shown in the plugin.
 
-The changes are on the [`fix/wmi-units-and-smart-auto`](https://github.com/OddGentleman/LenovoLegionToolkit-Plugins/tree/fix/wmi-units-and-smart-auto) branch as separate commits, intended for upstream. For build instructions, see the [upstream README](https://github.com/LenovoLegionToolkit-Team/LenovoLegionToolkit-Plugins#building).
+Fixes 1–5 are on the [`fix/wmi-units-and-smart-auto`](https://github.com/OddGentleman/LenovoLegionToolkit-Plugins/tree/fix/wmi-units-and-smart-auto) branch as separate commits, intended for upstream. The further tuning is on `main` only. For build instructions, see the [upstream README](https://github.com/LenovoLegionToolkit-Team/LenovoLegionToolkit-Plugins#building).
