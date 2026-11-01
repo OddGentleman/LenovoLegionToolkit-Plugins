@@ -12,7 +12,7 @@ On a **Legion 5 16IRX9** (machine type 83DG, BIOS NMCN34WW), the upstream plugin
   - The fans never settled. At idle the BIOS took over and wandered between 1,700 and 1,900 RPM.
   - In games, the fans swung up and down with every temperature peak.
 
-The suggested cause was that the machine is incompatible with WMI mode and needs EC (embedded controller) mode. That turned out to be wrong. WMI fan control works on this machine; the plugin was sending values that this firmware reads differently.
+The plugin was sending values that this firmware reads differently.
 
 Only the 16IRX9 has been tested. Other Legion models with the same firmware behaviour are likely affected too.
 
