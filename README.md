@@ -51,6 +51,7 @@ The GPU in this laptop draws up to 140 W, so any game counted as full load. That
 | 3. Power spikes | New *ramp gate* between Smart Auto and the fans, described below. |
 | 4. BIOS idle handoff | Smart Auto now holds the fan minimum instead of writing `0`. Custom curve mode is unchanged. |
 | 5. Fixed power range | Idle and full-load watts are now settings, separately for CPU and GPU. |
+| Confusing settings | Settings that Smart Auto ignores are now greyed out with a "Not used while Smart Auto is on" note: calculation interval, temperature/power delta filters, hysteresis, step-down gliding and spin-up boost. |
 
 The ramp gate works like this:
 - **Short spikes are ignored.** A higher demand must last 5 seconds before the fans respond. The wait shrinks as the temperature approaches 85°C, so a real heat-up, such as a game starting, gets a fast response. A single hot reading never triggers it.
