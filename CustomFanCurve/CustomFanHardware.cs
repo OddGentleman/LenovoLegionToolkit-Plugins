@@ -177,7 +177,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         // Firmware Write Units: Some firmware reads the written value as one byte in hundreds of RPM (e.g. 18 = 1800 RPM)
         // and silently keeps only the low byte of a raw RPM value. Reads always return plain RPM.
-        private static int ToFirmwareValue(int rpm)
+        internal static int ToFirmwareValue(int rpm)
         {
             rpm = Math.Max(0, rpm);
             if (CustomFanCurveProvider.InstanceConfigManager?.Settings.WriteRpmInHundreds != true)

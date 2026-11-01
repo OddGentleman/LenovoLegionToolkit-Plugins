@@ -48,6 +48,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private readonly ConcurrentDictionary<int, int> _lastIdealRpm = new();
         private readonly ConcurrentDictionary<int, long> _lastWriteTick = new();
         private readonly SmartRampGate _smartRampGate = new();
+        private readonly ConcurrentDictionary<int, long> _emaTick = new();
+        private bool _acousticOffsetActive;
 
         private readonly ConcurrentDictionary<int, float> _lastRawTemp = new();
         private readonly ConcurrentDictionary<int, long> _lastRawTempTick = new();
@@ -374,15 +376,42 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 {
                     var r0 = results[fan0];
                     var r1 = results[fan1];
-                    if (r0.TargetRpm > 0 && r1.TargetRpm > 0 && Math.Abs(r0.TargetRpm - r1.TargetRpm) < _configManager.Settings.AcousticOffsetDeltaRpm)
+                    var acousticSettings = _configManager.Settings;
+                    int maxRpm1 = _hardware.GetMaxRpm(fan1);
+                    int minRpm1 = _hardware.GetMinRpm(fan1);
+
+                    // Fans idling at (or within one 100 RPM step of) their minimum are too slow to beat audibly; offsetting them would only add idle noise.
+                    bool bothAboveMinimum = r0.TargetRpm > _hardware.GetMinRpm(fan0) + 100 && r1.TargetRpm > minRpm1 + 100;
+                    // Hysteresis: once active, the offset stays until the targets drift further apart, so it does not toggle at the threshold.
+                    int gap = Math.Abs(r0.TargetRpm - r1.TargetRpm);
+                    int activeDelta = _acousticOffsetActive ? acousticSettings.AcousticOffsetDeltaRpm + acousticSettings.AcousticOffsetAddRpm : acousticSettings.AcousticOffsetDeltaRpm;
+                    _acousticOffsetActive = bothAboveMinimum && gap < activeDelta;
+
+                    // Firmware Steps: in hundreds mode the fans are already apart when they land on different steps;
+                    // otherwise the second fan is placed whole steps away so the separation survives rounding.
+                    bool alreadySeparated = acousticSettings.WriteRpmInHundreds
+                        && CustomFanHardware.ToFirmwareValue(r0.TargetRpm) != CustomFanHardware.ToFirmwareValue(r1.TargetRpm);
+
+                    if (_acousticOffsetActive && !alreadySeparated)
                     {
-                        int maxRpm1 = _hardware.GetMaxRpm(fan1);
-                        int minRpm1 = _hardware.GetMinRpm(fan1);
-                        int newTargetRpm1 = r1.TargetRpm + _configManager.Settings.AcousticOffsetAddRpm;
-                        
-                        if (newTargetRpm1 > maxRpm1) 
+                        int newTargetRpm1;
+                        if (acousticSettings.WriteRpmInHundreds)
                         {
-                            newTargetRpm1 = r1.TargetRpm - _configManager.Settings.AcousticOffsetAddRpm;
+                            int steps = Math.Max(1, acousticSettings.AcousticOffsetAddRpm / 100);
+                            int baseStep = CustomFanHardware.ToFirmwareValue(r1.TargetRpm);
+                            newTargetRpm1 = (baseStep + steps) * 100;
+                            if (newTargetRpm1 > maxRpm1)
+                            {
+                                newTargetRpm1 = (baseStep - steps) * 100;
+                            }
+                        }
+                        else
+                        {
+                            newTargetRpm1 = r1.TargetRpm + acousticSettings.AcousticOffsetAddRpm;
+                            if (newTargetRpm1 > maxRpm1)
+                            {
+                                newTargetRpm1 = r1.TargetRpm - acousticSettings.AcousticOffsetAddRpm;
+                            }
                         }
 
                         minRpm1 = Math.Min(minRpm1, maxRpm1);
@@ -394,7 +423,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                         var minRpmChange = _configManager.Settings.EnableMinimumRpmChangeToApply ? _configManager.Settings.MinimumRpmChangeToApply : 0;
                         var requiredDelta = isSteppingDown ? _configManager.Settings.StepDownSpamProtectionDelta : minRpmChange;
                         
-                        var isSameOrClose = hadLast && (delta < requiredDelta || newTargetRpm1 == lastApplied);
+                        var isSameOrClose = hadLast && (delta < requiredDelta || newTargetRpm1 == lastApplied || IsSameFirmwareValue(lastApplied, newTargetRpm1));
                         if (isSameOrClose)
                         {
                             newTargetRpm1 = lastApplied;
@@ -443,8 +472,11 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
                     if (newTargetRpm != TargetRpm)
                     {
-                        Logger.Debug($"Fan{fanId}: SyncFanLevel override {TargetRpm} -> {newTargetRpm} RPM (maxPercent={maxPercent:F1}%)");
-                        results[fanId] = (true, newTargetRpm, CurrentRpm, Temp);
+                        // Only write when the synced value differs from what the fan already has; repeated writes make some firmware wobble.
+                        bool isChange = !_lastAppliedRpm.TryGetValue(fanId, out var appliedRpm)
+                            || (appliedRpm != newTargetRpm && !IsSameFirmwareValue(appliedRpm, newTargetRpm));
+                        Logger.Debug($"Fan{fanId}: SyncFanLevel override {TargetRpm} -> {newTargetRpm} RPM (maxPercent={maxPercent:F1}%) write={isChange}");
+                        results[fanId] = (isChange, newTargetRpm, CurrentRpm, Temp);
                     }
                 }
             }
@@ -525,18 +557,24 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             var delayTicks = TimeSpan.FromMilliseconds(settings.CalculationDelayMs).Ticks;
 
             // Exponential Moving Average (EMA) Smoothing: Low-pass filter to ignore brief temperature fluctuations.
+            // Time-based: EmaAlpha is the weight per second, so irregular or stalled sensor cycles neither over- nor under-smooth.
             double smoothedTemp = temp;
             if (settings.EnableEma)
             {
-                double alpha = settings.EmaAlpha;
-                smoothedTemp = _emaTemp.TryGetValue(fanId, out var lastEma)
-                    ? (temp * alpha) + (lastEma * (1.0 - alpha))
-                    : temp;
+                double alphaPerSecond = Math.Clamp(settings.EmaAlpha, 0.01, 1.0);
+                if (_emaTemp.TryGetValue(fanId, out var lastEma) && _emaTick.TryGetValue(fanId, out var lastEmaTick) && now > lastEmaTick)
+                {
+                    double dtSeconds = Math.Min((now - lastEmaTick) / (double)TimeSpan.TicksPerSecond, 10.0);
+                    double alpha = 1.0 - Math.Pow(1.0 - alphaPerSecond, dtSeconds);
+                    smoothedTemp = (temp * alpha) + (lastEma * (1.0 - alpha));
+                }
                 _emaTemp[fanId] = smoothedTemp;
+                _emaTick[fanId] = now;
             }
             else
             {
                 _emaTemp.TryRemove(fanId, out _);
+                _emaTick.TryRemove(fanId, out _);
             }
             
             float calcTemp = (float)smoothedTemp;
@@ -717,7 +755,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             var minRpmChange = settings.EnableMinimumRpmChangeToApply ? settings.MinimumRpmChangeToApply : 0;
             var requiredDelta = isSteppingDown ? settings.StepDownSpamProtectionDelta : minRpmChange;
-            var isSameOrClose = hadLast && (delta < requiredDelta || targetRpm == lastApplied);
+            var isSameOrClose = hadLast && (delta < requiredDelta || targetRpm == lastApplied || IsSameFirmwareValue(lastApplied, targetRpm));
             if (isSameOrClose)
             {
                 targetRpm = lastApplied;
@@ -743,6 +781,11 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             return (shouldWrite, targetRpm, currentRpm);
         }
+
+        // Firmware Write Dedupe: In hundreds mode two RPM values can map to the same firmware step; re-sending it restarts the
+        // firmware's speed regulation and makes the fan wobble, so such a change counts as no change.
+        private bool IsSameFirmwareValue(int rpmA, int rpmB) =>
+            _configManager.Settings.WriteRpmInHundreds && CustomFanHardware.ToFirmwareValue(rpmA) == CustomFanHardware.ToFirmwareValue(rpmB);
 
         private async Task<int> WriteFanRpmAsync(int fanId, int targetRpm, int currentRpm)
         {
