@@ -56,7 +56,7 @@ The GPU in this laptop draws up to 140 W, so any game counted as full load. That
 The ramp gate works like this:
 - **Short spikes are ignored.** A higher demand must last 5 seconds before the fans respond. The wait shrinks as the temperature approaches 85°C, so a real heat-up, such as a game starting, gets a fast response. A single hot reading never triggers it.
 - **Ramps are smooth.** The fans ramp up gradually. When demand drops, they hold for 3 seconds, then glide down.
-- **Games get steadier fans.** Repeated ramp-ups within 2 minutes switch to longer holds (15 s), a slower glide down and gentler climbs. The fans then stay steady between peaks instead of following every one.
+- **Games get steadier fans.** Under sustained heat (30-second average of the hotter chip at 72°C or above), the gate switches to longer holds (15 s), a slower glide down and gentler climbs. The fans then stay steady between peaks instead of following every one. In the test game the chip averaged 75–78°C; desktop bursts such as app launches and update checks averaged 67–70°C. An earlier version counted ramp-ups instead (two within 2 minutes), and ordinary desktop use triggered it.
 - **Safety isn't delayed.** At 90°C the fans respond instantly, and the existing 95°C critical override is unchanged.
 
 **Results on the 16IRX9:**
@@ -92,6 +92,17 @@ These changes are on `main` only, not in the upstream proposal. They were checke
 | Hysteresis | Off | Only applies to curve mode |
 | Asymmetric Step-Down | Off | Smart Auto's ramp gate already glides down |
 | Spin-Up Boost | Off | Only fires when a fan starts from 0 RPM, which Smart Auto no longer sends |
+| GPU fan sensor source | **Default** | "Max CPU/GPU" made the GPU fan follow the CPU at idle (about 1,400 instead of 1,000 RPM) for only about 1°C lower CPU idle temperature. Default keeps the GPU fan silent, and the Thermal Safety Net still brings it in when either chip is above 75°C. Set per fan as `SensorSource` in the config (0 Default, 1 Max, 2 Average). |
+
+**Debug log fields.** With Debug Mode on, each `recalc` line in `%LOCALAPPDATA%\LenovoLegionToolkit\log\plugin_LenovoLegionToolkit.Plugin.CustomFanCurve.CustomFanCurveProvider.log` also records:
+
+| Field | Meaning |
+|---|---|
+| `rawTemp` | The fan's raw sensor temperature |
+| `hwMaxRaw` | Raw temperature of the hotter chip |
+| `safetyTemp` | The (smoothed) temperature the safety paths use |
+| `safeMin` | The Thermal Safety Net's minimum fan speed |
+| `cpuW` / `gpuW` | CPU and GPU power draw (−1 when the GPU is powered down) |
 
 ### Enabling the fixes
 
@@ -110,7 +121,11 @@ The Spike Filter is on by default. Every other new setting defaults to the upstr
 "SmartGpuFullPowerW": 140,
 "EnableEma": true,
 "EmaAlpha": 0.35,
+"SmartSustainedWindowSeconds": 30,
+"SmartSustainedTemp": 72,
 ```
+
+If your config came from an earlier build of this fork, check `SmartSustainedWindowSeconds`. It used to mean "two ramp-ups within this many seconds" (saved as 120). It now sets the averaging time for sustained-heat detection, and 30 is the tested value.
 
 Set the power values to your own limits: the CPU long-term power limit, and the GPU TGP plus Dynamic Boost.
 
