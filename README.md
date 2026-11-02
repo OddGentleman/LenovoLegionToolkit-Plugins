@@ -77,7 +77,9 @@ These changes are on `main` only, not in the upstream proposal. They were checke
 - **It no longer toggles.** Once active, it stays on until the fans drift further apart, instead of switching on and off around the 100 RPM threshold.
 - **It works in whole firmware steps.** In hundreds mode, a 150 RPM offset rounded unpredictably to +100 or +200 RPM. The second fan is now placed whole 100 RPM steps away, or left alone if the fans already land on different steps.
 
-**EMA temperature smoothing is time-based.** The smoothing factor used to apply per sensor reading, but readings arrive anywhere from 0.5 to over 6 seconds apart. `EmaAlpha` is now the weight per second. At 0.35/s, on this laptop's CPU, it removes about 70% of reading-to-reading jitter (sharp 4°C+ jumps went from 82 to 3 in the test log). On a real heat-up it lags only 2–4°C for a few seconds. Emergency and safety checks still use the raw temperatures.
+**EMA temperature smoothing is time-based.** The smoothing factor used to apply per sensor reading, but readings arrive anywhere from 0.5 to over 6 seconds apart. `EmaAlpha` is now the weight per second. At 0.35/s, on this laptop's CPU, it removes about 70% of reading-to-reading jitter (sharp 4°C+ jumps went from 82 to 3 in the test log). On a real heat-up it lags only 2–4°C for a few seconds.
+
+**With EMA on, the safety paths use the smoothed temperature too.** That covers the Thermal Safety Net floor, the ramp urgency and the 90°C emergency bypass. On this CPU an app launch boosts it to 88–97°C for 1–3 seconds. With raw temperatures, the Safety Net floor alone pushed the fans to about 70% for each launch, even though fans can't cool a 2-second spike: the heat sink takes tens of seconds to respond. The 95°C critical override still uses raw readings, as the last line of defence.
 
 **Other settings for Smart Auto on this laptop:**
 
