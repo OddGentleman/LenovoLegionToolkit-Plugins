@@ -49,6 +49,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private readonly ConcurrentDictionary<int, long> _lastWriteTick = new();
         private readonly SmartRampGate _smartRampGate = new();
         private readonly ConcurrentDictionary<int, long> _emaTick = new();
+        private readonly ConcurrentDictionary<int, double> _emaHardwareMax = new();
         private bool _acousticOffsetActive;
 
         private readonly ConcurrentDictionary<int, float> _lastRawTemp = new();
@@ -558,7 +559,11 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             // Exponential Moving Average (EMA) Smoothing: Low-pass filter to ignore brief temperature fluctuations.
             // Time-based: EmaAlpha is the weight per second, so irregular or stalled sensor cycles neither over- nor under-smooth.
+            // The hotter chip feeds the safety paths (safety net floor, ramp urgency, emergency bypass). It is smoothed the same way,
+            // so a 1-3 s boost spike is not treated as an emergency; the critical override in ProcessAsync still uses raw readings.
+            float rawHardwareMax = Math.Max(snapshot[SensorItem.CpuTemperature], snapshot[SensorItem.GpuCoreTemperature]);
             double smoothedTemp = temp;
+            double smoothedHardwareMax = rawHardwareMax;
             if (settings.EnableEma)
             {
                 double alphaPerSecond = Math.Clamp(settings.EmaAlpha, 0.01, 1.0);
@@ -567,13 +572,19 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     double dtSeconds = Math.Min((now - lastEmaTick) / (double)TimeSpan.TicksPerSecond, 10.0);
                     double alpha = 1.0 - Math.Pow(1.0 - alphaPerSecond, dtSeconds);
                     smoothedTemp = (temp * alpha) + (lastEma * (1.0 - alpha));
+                    if (_emaHardwareMax.TryGetValue(fanId, out var lastHardwareMax))
+                    {
+                        smoothedHardwareMax = (rawHardwareMax * alpha) + (lastHardwareMax * (1.0 - alpha));
+                    }
                 }
                 _emaTemp[fanId] = smoothedTemp;
+                _emaHardwareMax[fanId] = smoothedHardwareMax;
                 _emaTick[fanId] = now;
             }
             else
             {
                 _emaTemp.TryRemove(fanId, out _);
+                _emaHardwareMax.TryRemove(fanId, out _);
                 _emaTick.TryRemove(fanId, out _);
             }
             
@@ -672,7 +683,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 }
 
                 
-                float hardwareMax = Math.Max(snapshot[SensorItem.CpuTemperature], snapshot[SensorItem.GpuCoreTemperature]);
+                float hardwareMax = (float)smoothedHardwareMax;
                 float safetyEvalTemp = Math.Max(calcTemp, hardwareMax);
                 int safeMinPercent = CustomFanCurveCalculator.GetSafeMinPercent(safetyEvalTemp);
                 
@@ -715,7 +726,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 _lastCalcRpm[fanId] = targetRpm;
                 _lastCalcTick[fanId] = now;
 
-                Logger.Debug($"Fan{fanId}: recalc idealRpm={idealRpm} cachedRpm={cachedRpm} -> targetRpm={targetRpm} evalTemp={evalTemp:F1} isSteppingDown={isSteppingDown}");
+                Logger.Debug($"Fan{fanId}: recalc idealRpm={idealRpm} cachedRpm={cachedRpm} -> targetRpm={targetRpm} evalTemp={evalTemp:F1} isSteppingDown={isSteppingDown} rawTemp={temp:F1} hwMaxRaw={rawHardwareMax:F1} safetyTemp={safetyEvalTemp:F1} safeMin={safeMinPercent}% cpuW={snapshot[SensorItem.CpuPower]:F0} gpuW={snapshot[SensorItem.GpuPower]:F0}");
             }
             else
             {
