@@ -176,12 +176,14 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 }
             };
 
-            MessagingCenter.Subscribe<FanStateMessage>(this, m => 
+            // Legion Toolkit sends Auto on suspend and Manual on resume in every power mode, so re-check the mode on resume
+            // instead of enabling outright.
+            MessagingCenter.Subscribe<FanStateMessage>(this, m =>
             {
                 if (m.State == FanState.Auto)
                     _ = SetEnabledAsync(false);
-                else if (_configManager.Settings.IsCustomFanEnabled)
-                    _ = SetEnabledAsync(true);
+                else
+                    _ = ReevaluateStateAsync();
             });
             _sensorProvider.SensorUpdated += OnSensorUpdated;
         }
@@ -1011,7 +1013,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         }
 
         // Waits for the firmware to settle after a power mode switch, then hands the fans back only if they are still at the
-        // speeds the plugin last set (firmware that does not take them back by itself).
+        // speeds the plugin last set (firmware that does not take them back by itself), or stopped. On the 16IRX9 the firmware
+        // sometimes leaves both fans at 0 RPM after the switch instead of taking them back.
         private async Task HandBackAfterModeSwitchAsync(Dictionary<int, int> appliedBeforeSwitch)
         {
             try
@@ -1019,17 +1022,18 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 long settledAt = await WaitForModeSwitchesToSettleAsync().ConfigureAwait(false);
                 if (_disposed || _isEnabled || _isFullSpeed) return;
 
-                bool stillPluginControlled = false;
+                bool needsHandBack = false;
                 foreach (var fanId in _hardware.AvailableFanIds)
                 {
                     int rpm = await _hardware.GetFanRpmAsync(fanId).ConfigureAwait(false);
                     bool hadApplied = appliedBeforeSwitch.TryGetValue(fanId, out var applied);
                     bool atPluginSpeed = hadApplied && applied > 0 && Math.Abs(rpm - applied) <= ModeSwitchMatchToleranceRpm;
-                    stillPluginControlled |= atPluginSpeed;
-                    Logger.Debug($"ModeSwitch: Fan{fanId} rpm={rpm} lastApplied={(hadApplied ? applied : -1)} atPluginSpeed={atPluginSpeed}");
+                    bool stopped = hadApplied && applied > 0 && rpm == 0;
+                    needsHandBack |= atPluginSpeed || stopped;
+                    Logger.Debug($"ModeSwitch: Fan{fanId} rpm={rpm} lastApplied={(hadApplied ? applied : -1)} atPluginSpeed={atPluginSpeed} stopped={stopped}");
                 }
 
-                if (stillPluginControlled)
+                if (needsHandBack)
                 {
                     // Another switch may have started while the fans were being read; never hand back in the middle of one.
                     if (Interlocked.Read(ref _lastModeSwitchTicks) != settledAt)
@@ -1039,8 +1043,16 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                         return;
                     }
 
-                    Logger.Debug("ModeSwitch: fans still at plugin speeds after settling, handing back to firmware");
+                    Logger.Debug("ModeSwitch: fans still at plugin speeds or stopped after settling, handing back to firmware");
                     await RestoreAutoFanAsync().ConfigureAwait(false);
+
+                    await Task.Delay(ModeSwitchSettleMs).ConfigureAwait(false);
+                    if (_disposed || _isEnabled || _isFullSpeed) return;
+                    foreach (var fanId in _hardware.AvailableFanIds)
+                    {
+                        int rpm = await _hardware.GetFanRpmAsync(fanId).ConfigureAwait(false);
+                        Logger.Debug($"ModeSwitch: after hand-back Fan{fanId} rpm={rpm}");
+                    }
                 }
                 else
                 {
