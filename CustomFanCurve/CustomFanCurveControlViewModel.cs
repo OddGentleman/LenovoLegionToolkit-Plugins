@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using LenovoLegionToolkit.Lib;
+using LenovoLegionToolkit.Plugin.CustomFanCurve.Resources;
 
 namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 {
@@ -25,13 +26,20 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public CustomFanCurveControlViewModel(CustomFanCurveEntry entry, CustomFanCurveConfigManager configManager, ICustomFanMonitoringService monitoring, string displayName = "")
+        public CustomFanCurveControlViewModel(CustomFanCurveEntry entry, CustomFanCurveConfigManager configManager, ICustomFanMonitoringService monitoring, string displayName = "", bool followsGpuByDefault = false)
         {
             _entry = entry;
             _configManager = configManager;
             _monitoring = monitoring;
             _fanId = entry.FanId;
             DisplayName = displayName;
+            // Default follows the fan's own chip, so name that chip instead of a generic "default".
+            SensorSourceOptions = new[]
+            {
+                new SensorSourceOption(SensorSource.Default, followsGpuByDefault ? Resource.SensorSourceGpuTemperature : Resource.SensorSourceCpuTemperature),
+                new SensorSourceOption(SensorSource.MaxCpuGpu, Resource.SensorSourceMaxCpuGpu),
+                new SensorSourceOption(SensorSource.AverageCpuGpu, Resource.SensorSourceAverageCpuGpu),
+            };
 
             CurveNodes = entry.CurveNodes;
             CurveNodeDisplays = new ObservableCollection<CurveNodeDisplay>();
@@ -134,7 +142,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private string _actualRpmDisplay = "--";
         public string ActualRpmDisplay { get => _actualRpmDisplay; set { _actualRpmDisplay = value; OnPropertyChanged(); } }
 
-        public IEnumerable<SensorSource> SensorSources => Enum.GetValues(typeof(SensorSource)).Cast<SensorSource>();
+        public IReadOnlyList<SensorSourceOption> SensorSourceOptions { get; }
 
         public SensorSource SensorSource
         {
@@ -372,4 +380,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         public bool CanExecute(object? p) => _canExecute?.Invoke((T?)p) ?? true;
         public void Execute(object? p) => _execute((T?)p);
     }
+
+    public sealed record SensorSourceOption(SensorSource Value, string Label);
 }

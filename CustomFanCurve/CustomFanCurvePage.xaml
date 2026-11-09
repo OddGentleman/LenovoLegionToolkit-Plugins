@@ -9,7 +9,6 @@
 
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-        <local:EnumDisplayNameConverter x:Key="EnumDisplayNameConverter"/>
         <SolidColorBrush x:Key="PageAccentSecondaryBrush" Color="{DynamicResource SystemAccentColorSecondary}"/>
         <SolidColorBrush x:Key="TextOnAccentBrush" Color="{DynamicResource TextOnAccentFillColorPrimary}"/>
         
@@ -231,13 +230,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Right"
                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-                                        <ComboBox Grid.Column="2" ItemsSource="{Binding SensorSources}" SelectedItem="{Binding SensorSource, Mode=TwoWay}">
-                                            <ComboBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDisplayNameConverter}}"/>
-                                                </DataTemplate>
-                                            </ComboBox.ItemTemplate>
-                                        </ComboBox>
+                                        <ComboBox Grid.Column="2" ItemsSource="{Binding SensorSourceOptions}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding SensorSource, Mode=TwoWay}"/>
                                     </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

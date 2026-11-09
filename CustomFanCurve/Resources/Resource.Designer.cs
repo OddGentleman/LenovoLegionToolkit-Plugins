@@ -961,7 +961,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Average of CPU / GPU.
+        ///   Looks up a localized string similar to Average of CPU and GPU.
         /// </summary>
         public static string SensorSourceAverageCpuGpu {
             get {
@@ -979,7 +979,25 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Selects the temperature sensor monitored by this fan curve..
+        ///   Looks up a localized string similar to CPU temperature.
+        /// </summary>
+        public static string SensorSourceCpuTemperature {
+            get {
+                return ResourceManager.GetString("SensorSourceCpuTemperature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to GPU temperature.
+        /// </summary>
+        public static string SensorSourceGpuTemperature {
+            get {
+                return ResourceManager.GetString("SensorSourceGpuTemperature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Which temperature this fan follows..
         /// </summary>
         public static string SensorSourceDesc {
             get {
@@ -988,7 +1006,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Maximum of CPU / GPU.
+        ///   Looks up a localized string similar to Hotter of CPU and GPU.
         /// </summary>
         public static string SensorSourceMaxCpuGpu {
             get {

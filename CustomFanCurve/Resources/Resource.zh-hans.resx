@@ -418,16 +418,22 @@
     <value>温度传感器源</value>
   </data>
   <data name="SensorSourceAverageCpuGpu" xml:space="preserve">
-    <value>CPU / GPU 中的平均值</value>
+    <value>CPU 和 GPU 的平均值</value>
   </data>
   <data name="SensorSourceDefault" xml:space="preserve">
     <value>系统默认 (自动)</value>
   </data>
+  <data name="SensorSourceCpuTemperature" xml:space="preserve">
+    <value>CPU 温度</value>
+  </data>
+  <data name="SensorSourceGpuTemperature" xml:space="preserve">
+    <value>GPU 温度</value>
+  </data>
   <data name="SensorSourceDesc" xml:space="preserve">
-    <value>选择此风扇曲线监测的温度源。</value>
+    <value>此风扇跟随的温度。</value>
   </data>
   <data name="SensorSourceMaxCpuGpu" xml:space="preserve">
-    <value>CPU / GPU 中的最大值</value>
+    <value>CPU 和 GPU 中较热者</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>设置</value>

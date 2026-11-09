@@ -158,7 +158,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                         1 => Resource.GpuFan,
                         _ => fanIds.Count > 3 ? $"{Resource.SystemFan} {i - 1}" : Resource.SystemFan
                     };
-                    FanViewModels.Add(new CustomFanCurveControlViewModel(entry, _configManager, _monitoring, displayName));
+                    FanViewModels.Add(new CustomFanCurveControlViewModel(entry, _configManager, _monitoring, displayName, followsGpuByDefault: i == 1));
                 }
             }
             if (FanViewModels.Count > 0)

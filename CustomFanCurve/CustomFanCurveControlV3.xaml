@@ -12,7 +12,6 @@
     FlowDirection="LeftToRight"
     PreviewMouseLeftButtonDown="UserControl_PreviewMouseLeftButtonDown">
     <UserControl.Resources>
-        <local:EnumDisplayNameConverter x:Key="EnumDisplayNameConverter"/>
         <SolidColorBrush x:Key="GraphAccentPrimaryBrush" Color="{DynamicResource SystemAccentColorPrimary}"/>
         <SolidColorBrush x:Key="GraphAccentSecondaryBrush" Color="{DynamicResource SystemAccentColorSecondary}"/>
     </UserControl.Resources>
@@ -322,14 +321,9 @@
                                FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                TextWrapping="Wrap" Margin="0,0,0,8"/>
                     <ComboBox x:Name="_sensorSourceSelector" HorizontalAlignment="Stretch"
-                               ItemsSource="{Binding SensorSources}"
-                               SelectedItem="{Binding SensorSource, Mode=TwoWay}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Converter={StaticResource EnumDisplayNameConverter}}"/>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
+                               ItemsSource="{Binding SensorSourceOptions}"
+                               DisplayMemberPath="Label" SelectedValuePath="Value"
+                               SelectedValue="{Binding SensorSource, Mode=TwoWay}"/>
                 </StackPanel>
             </wpfui:Card>
         </Grid>

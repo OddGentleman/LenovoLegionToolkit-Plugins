@@ -418,16 +418,22 @@
     <value>Sensor Source</value>
   </data>
   <data name="SensorSourceAverageCpuGpu" xml:space="preserve">
-    <value>Average of CPU / GPU</value>
+    <value>Average of CPU and GPU</value>
   </data>
   <data name="SensorSourceDefault" xml:space="preserve">
     <value>System Default (Auto)</value>
   </data>
+  <data name="SensorSourceCpuTemperature" xml:space="preserve">
+    <value>CPU temperature</value>
+  </data>
+  <data name="SensorSourceGpuTemperature" xml:space="preserve">
+    <value>GPU temperature</value>
+  </data>
   <data name="SensorSourceDesc" xml:space="preserve">
-    <value>Selects the temperature sensor monitored by this fan curve.</value>
+    <value>Which temperature this fan follows.</value>
   </data>
   <data name="SensorSourceMaxCpuGpu" xml:space="preserve">
-    <value>Maximum of CPU / GPU</value>
+    <value>Hotter of CPU and GPU</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Settings</value>
