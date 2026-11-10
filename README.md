@@ -122,12 +122,13 @@ A new **Curve Spike Filter** switch under Settings → Advanced (off by default)
 
 The Spike Filter is on by default. Every other new setting defaults to the upstream behaviour, so nothing else changes until you set it.
 
-- **In the settings screen** (Settings → Advanced): turn on **Hold Minimum Speed at Idle** for Smart Auto, and **Curve Spike Filter** for custom curves.
+- **In the settings screen** (Settings → Advanced): turn on **Write RPM in Hundreds**, **Hold Minimum Speed at Idle** for Smart Auto, and **Curve Spike Filter** for custom curves. Set **Minimum Fan Speed** to 17% (see below).
 - **In the config file:** the rest aren't in the settings screen yet. With Legion Toolkit closed, add or adjust them in `%LOCALAPPDATA%\LenovoLegionToolkit\Plugins\Configs\CustomFanCurve\custom_fan_curve_settings.json`:
 
 ```json
 "SmartHoldMinimumAtIdle": true,
 "WriteRpmInHundreds": true,
+"MinimumSpeedPercent": 17,
 "AlwaysWriteRpm": false,
 "SmartCpuIdlePowerW": 20,
 "SmartCpuFullPowerW": 70,
@@ -144,5 +145,7 @@ If your config came from an earlier build of this fork, check `SmartSustainedWin
 Set the power values to your own limits: the CPU long-term power limit, and the GPU TGP plus Dynamic Boost.
 
 Your machine probably needs `WriteRpmInHundreds` if custom curves run the fans at full speed, or if the measured fan speeds bear no relation to the targets shown in the plugin.
+
+**Fan range from the firmware.** Upstream now reads each fan's maximum, minimum and speed step from the firmware's fan table. On the 16IRX9 it reports 5,600 RPM maximum and 100 RPM steps for both fans, so curve percentages now scale to 5,600 instead of the 5,900 / 6,000 found by the old probe (a 30% point now means about 1,700 RPM). It reports a minimum of 0, so the minimum comes from **Minimum Fan Speed** (a percentage of the maximum, rounded up to a whole step). Its default of 10% gives 600 RPM. 17% gives 1,000 RPM, the minimum this fork used before, and the speed the idle hold was tested at. In this fork, curve targets below the minimum still hand the fan back to the BIOS, and Smart Auto with **Hold Minimum Speed at Idle** still holds the minimum.
 
 Fixes 1–5 are on the [`fix/wmi-units-and-smart-auto`](https://github.com/OddGentleman/LenovoLegionToolkit-Plugins/tree/fix/wmi-units-and-smart-auto) branch as separate commits, intended for upstream. The further tuning is on `main` only. For build instructions, see the [upstream README](https://github.com/LenovoLegionToolkit-Team/LenovoLegionToolkit-Plugins#building).
