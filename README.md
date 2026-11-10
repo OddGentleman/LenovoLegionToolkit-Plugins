@@ -85,6 +85,15 @@ These changes are on `main` only, not in the upstream proposal. They were checke
 
 **With EMA on, the safety paths use the smoothed temperature too.** That covers the Thermal Safety Net floor, the ramp urgency and the 90°C emergency bypass. On this CPU an app launch boosts it to 88–97°C for 1–3 seconds. With raw temperatures, the Safety Net floor alone pushed the fans to about 70% for each launch, even though fans can't cool a 2-second spike: the heat sink takes tens of seconds to respond. The 95°C critical override still uses raw readings, as the last line of defence.
 
+**Custom curves can use the spike filter too.** In curve mode the fans followed every short spike. In one logged app launch, a single 78°C CPU reading lifted the CPU fan from 1,850 to 2,200 RPM at once. Curve mode's own settings can't fully prevent that:
+- Hysteresis only shifts the curve by 3°C while the fan spins.
+- Step-Down Glide slows decreases but not increases, and never holds.
+- A lower EMA alpha filters spikes, but it delays real heat-ups and the safety paths too.
+
+A new **Curve Spike Filter** switch under Settings → Advanced (off by default) runs the curve's target through the same ramp gate as Smart Auto, with the same timings. Short spikes are ignored, rises ramp up gradually, decreases hold before gliding down, and sustained heat gets longer holds. The emergency bypass and critical override still apply. Calculation Delay and Step-Down Glide are greyed out while it's on.
+
+**Settings for custom curves on this laptop:** turn on **Curve Spike Filter**, keep EMA at 0.35, and leave Hysteresis and Predictive Engine off. Keep the curve flat up to a few degrees above the idle temperature (this CPU idles around 56–61°C), so idle wobble doesn't move the fans.
+
 **Other settings for Smart Auto on this laptop:**
 
 | Setting | Recommendation | Why |
@@ -113,7 +122,7 @@ These changes are on `main` only, not in the upstream proposal. They were checke
 
 The Spike Filter is on by default. Every other new setting defaults to the upstream behaviour, so nothing else changes until you set it.
 
-- **In the settings screen** (Settings → Advanced): turn on **Hold Minimum Speed at Idle**.
+- **In the settings screen** (Settings → Advanced): turn on **Hold Minimum Speed at Idle** for Smart Auto, and **Curve Spike Filter** for custom curves.
 - **In the config file:** the rest aren't in the settings screen yet. With Legion Toolkit closed, add or adjust them in `%LOCALAPPDATA%\LenovoLegionToolkit\Plugins\Configs\CustomFanCurve\custom_fan_curve_settings.json`:
 
 ```json
