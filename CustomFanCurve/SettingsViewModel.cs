@@ -25,6 +25,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             _calculationDelayMs = s.CalculationDelayMs;
             _isSmartAutoEnabled = s.IsSmartAutoEnabled;
             _smartSpikeFilterEnabled = s.SmartSpikeFilterEnabled;
+            _curveSpikeFilterEnabled = s.CurveSpikeFilterEnabled;
             _smartHoldMinimumAtIdle = s.SmartHoldMinimumAtIdle;
             _syncFanLevel = s.SyncFanLevel;
             _powerDeltaThreshold = s.PowerDeltaThreshold;
@@ -84,6 +85,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             Save(nameof(CustomFanCurveSettings.CalculationDelayMs), _calculationDelayMs);
             Save(nameof(CustomFanCurveSettings.IsSmartAutoEnabled), _isSmartAutoEnabled);
             Save(nameof(CustomFanCurveSettings.SmartSpikeFilterEnabled), _smartSpikeFilterEnabled);
+            Save(nameof(CustomFanCurveSettings.CurveSpikeFilterEnabled), _curveSpikeFilterEnabled);
             Save(nameof(CustomFanCurveSettings.SmartHoldMinimumAtIdle), _smartHoldMinimumAtIdle);
             Save(nameof(CustomFanCurveSettings.SyncFanLevel), _syncFanLevel);
             Save(nameof(CustomFanCurveSettings.PowerDeltaThreshold), _powerDeltaThreshold);
@@ -233,6 +235,21 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
         }
 
+        private bool _curveSpikeFilterEnabled;
+        public bool CurveSpikeFilterEnabled
+        {
+            get => _curveSpikeFilterEnabled;
+            set
+            {
+                if (_curveSpikeFilterEnabled != value)
+                {
+                    _curveSpikeFilterEnabled = value;
+                    OnPropertyChanged();
+                    OnSmartAutoModeChanged();
+                }
+            }
+        }
+
         private bool _smartHoldMinimumAtIdle;
         public bool SmartHoldMinimumAtIdle
         {
@@ -251,8 +268,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         // Settings that Smart Auto ignores are greyed out in the UI, with a note explaining why.
         // Hysteresis only exists in curve mode.
         public bool IsCurveOnlySettingsEnabled => !_isSmartAutoEnabled;
-        // The spike filter replaces calculation throttling and step-down gliding.
-        public bool IsCalcSchedulingIgnored => _isSmartAutoEnabled && _smartSpikeFilterEnabled;
+        // The spike filter replaces calculation throttling and step-down gliding, in whichever mode it is on.
+        public bool IsCalcSchedulingIgnored => _isSmartAutoEnabled ? _smartSpikeFilterEnabled : _curveSpikeFilterEnabled;
         public bool IsCalcSchedulingEnabled => !IsCalcSchedulingIgnored;
         // Spin-up boost only fires from 0 RPM, which Smart Auto never writes while holding the minimum.
         public bool IsSpinUpIgnored => _isSmartAutoEnabled && _smartHoldMinimumAtIdle;
@@ -686,6 +703,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             CalculationDelayMs = defaultSettings.CalculationDelayMs;
             IsSmartAutoEnabled = defaultSettings.IsSmartAutoEnabled;
             SmartSpikeFilterEnabled = defaultSettings.SmartSpikeFilterEnabled;
+            CurveSpikeFilterEnabled = defaultSettings.CurveSpikeFilterEnabled;
             SmartHoldMinimumAtIdle = defaultSettings.SmartHoldMinimumAtIdle;
             SyncFanLevel = defaultSettings.SyncFanLevel;
             PowerDeltaThreshold = defaultSettings.PowerDeltaThreshold;

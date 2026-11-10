@@ -57,6 +57,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         public bool IsSmartAutoEnabled { get; set; } = false;
         public bool SmartSpikeFilterEnabled { get; set; } = true;
+        public bool CurveSpikeFilterEnabled { get; set; } = false;
         public bool SmartHoldMinimumAtIdle { get; set; } = false;
         public double SmartSpikeIgnoreSeconds { get; set; } = 5.0;
         public int SmartRampUpRpmPerSec { get; set; } = 300;

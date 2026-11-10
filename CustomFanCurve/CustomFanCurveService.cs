@@ -656,8 +656,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     || !_lastAppliedRpm.ContainsKey(fanId) || _lastAppliedRpm[fanId] != cachedRpm));
             if (!elapsed && _lastCalcRpm.ContainsKey(fanId) && !isSteppingDown)
                 needRecalc = false;
-            // Smart Auto's ramp gate tracks spike/hold timers, so it must observe every sensor cycle.
-            bool useSpikeFilter = settings.IsSmartAutoEnabled && settings.SmartSpikeFilterEnabled;
+            // The ramp gate tracks spike/hold timers, so it must observe every sensor cycle. Curve mode has its own switch for it.
+            bool useSpikeFilter = settings.IsSmartAutoEnabled ? settings.SmartSpikeFilterEnabled : settings.CurveSpikeFilterEnabled;
             if (useSpikeFilter)
                 needRecalc = true;
             else

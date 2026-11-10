@@ -1132,6 +1132,24 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Curve Spike Filter.
+        /// </summary>
+        public static string CurveSpikeFilter {
+            get {
+                return ResourceManager.GetString("CurveSpikeFilter", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Applies the Smart Auto spike filter to the custom curve..
+        /// </summary>
+        public static string CurveSpikeFilterDesc {
+            get {
+                return ResourceManager.GetString("CurveSpikeFilterDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Spike Filter.
         /// </summary>
         public static string SmartSpikeFilter {
