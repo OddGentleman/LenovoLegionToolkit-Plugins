@@ -595,4 +595,34 @@
   <data name="WriteEachCycleDesc" xml:space="preserve">
     <value>全速模式下每个计算周期都写入最大 RPM</value>
   </data>
+  <data name="WriteRpmInHundreds" xml:space="preserve">
+    <value>以百 RPM 为单位写入</value>
+  </data>
+  <data name="WriteRpmInHundredsDesc" xml:space="preserve">
+    <value>以 100 RPM 为单位写入风扇转速，而不是原始 RPM。适用于以百为单位读取转速、否则会被钳制到最大转速的固件。</value>
+  </data>
+  <data name="WriteRpmInHundredsTooltip" xml:space="preserve">
+    <value>仅在写入转速会让风扇跑到最大转速时开启。以 100 RPM 而非原始 RPM 计量风扇转速的机型需要此选项。</value>
+  </data>
+  <data name="FanRange" xml:space="preserve">
+    <value>风扇范围</value>
+  </data>
+  <data name="FanRangeTooltip" xml:space="preserve">
+    <value>硬件报告的此风扇可设定的最低和最高转速。</value>
+  </data>
+  <data name="FanSpeedStep" xml:space="preserve">
+    <value>转速步进</value>
+  </data>
+  <data name="FanSpeedStepTooltip" xml:space="preserve">
+    <value>转速以此 RPM 数为增量变化。</value>
+  </data>
+  <data name="MinimumSpeedPercent" xml:space="preserve">
+    <value>最低风扇转速</value>
+  </data>
+  <data name="MinimumSpeedPercentDesc" xml:space="preserve">
+    <value>设置曲线可设定的最低风扇转速，以最大 RPM 的百分比表示。</value>
+  </data>
+  <data name="MinimumSpeedPercentTooltip" xml:space="preserve">
+    <value>可输入 0 到 100。0 表示取消下限，允许风扇停转。在会报告自身最低转速的机型上，以该报告值为准。</value>
+  </data>
 </root>

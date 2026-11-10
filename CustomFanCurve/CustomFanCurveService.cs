@@ -321,6 +321,10 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     {
                         await Task.Run(() => ProcessAsync(snapshot));
                     }
+                    catch (Exception ex)
+                    {
+                        Logger.Error("Fan control cycle failed", ex);
+                    }
                     finally
                     {
                         Interlocked.Exchange(ref _isProcessing, 0);
@@ -430,7 +434,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                         var minRpmChange = _configManager.Settings.EnableMinimumRpmChangeToApply ? _configManager.Settings.MinimumRpmChangeToApply : 0;
                         var requiredDelta = isSteppingDown ? _configManager.Settings.StepDownSpamProtectionDelta : minRpmChange;
                         
-                        var isSameOrClose = hadLast && (delta < requiredDelta || newTargetRpm1 == lastApplied || IsSameFirmwareValue(lastApplied, newTargetRpm1));
+                        var isSameOrClose = hadLast && (delta < requiredDelta || newTargetRpm1 == lastApplied || IsSameFirmwareValue(fan1, lastApplied, newTargetRpm1));
                         if (isSameOrClose)
                         {
                             newTargetRpm1 = lastApplied;
@@ -481,7 +485,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     {
                         // Only write when the synced value differs from what the fan already has; repeated writes make some firmware wobble.
                         bool isChange = !_lastAppliedRpm.TryGetValue(fanId, out var appliedRpm)
-                            || (appliedRpm != newTargetRpm && !IsSameFirmwareValue(appliedRpm, newTargetRpm));
+                            || (appliedRpm != newTargetRpm && !IsSameFirmwareValue(fanId, appliedRpm, newTargetRpm));
                         Logger.Debug($"Fan{fanId}: SyncFanLevel override {TargetRpm} -> {newTargetRpm} RPM (maxPercent={maxPercent:F1}%) write={isChange}");
                         results[fanId] = (isChange, newTargetRpm, CurrentRpm, Temp);
                     }
@@ -642,7 +646,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 Logger.Debug($"Fan{fanId}: fingerprint changed, preserving cached RPM state");
             }
 
-            bool isSteppingDown = _lastIdealRpm.ContainsKey(fanId) && _lastCalcRpm.ContainsKey(fanId) && _lastIdealRpm[fanId] < _lastCalcRpm[fanId];
+            bool isSteppingDown = _lastIdealRpm.TryGetValue(fanId, out var prevIdeal) && _lastCalcRpm.TryGetValue(fanId, out var prevCalc) && prevIdeal < prevCalc;
 
             _lastPower.TryGetValue(fanId, out var lastPower);
             float currentRelevantPower = fanId == 2 ? snapshot[SensorItem.GpuPower] : snapshot[SensorItem.CpuPower];
@@ -653,7 +657,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             var needRecalc = !_lastTemp.ContainsKey(fanId) || !_lastCalcRpm.ContainsKey(fanId) || isSteppingDown
                 || (elapsed && (tempDelta >= tempThreshold || powerDelta >= powerThreshold
-                    || !_lastAppliedRpm.ContainsKey(fanId) || _lastAppliedRpm[fanId] != cachedRpm));
+                    || !_lastAppliedRpm.TryGetValue(fanId, out var appliedForRecalc) || appliedForRecalc != cachedRpm));
             if (!elapsed && _lastCalcRpm.ContainsKey(fanId) && !isSteppingDown)
                 needRecalc = false;
             // The ramp gate tracks spike/hold timers, so it must observe every sensor cycle. Curve mode has its own switch for it.
@@ -696,10 +700,27 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 int safeMinRpm = (int)Math.Round(safeMinPercent / 100.0 * _hardware.GetMaxRpm(fanId));
                 idealRpm = Math.Max(idealRpm, safeMinRpm);
 
+                // Speed Range: Snap to the firmware's speed step and cap at the real maximum. Targets below the minimum are left
+                // to the idle handling further down (hold the minimum in Smart Auto, otherwise hand the fan back to the BIOS).
+                int stepRpm = _hardware.GetRpmStep(fanId);
+                int ceilingRpm = _hardware.GetMaxRpm(fanId);
+                if (idealRpm > 0)
+                {
+                    if (stepRpm > 1)
+                    {
+                        // Round up while the safety net sets the speed, so snapping never lands below its floor.
+                        double steps = idealRpm / (double)stepRpm;
+                        idealRpm = (idealRpm <= safeMinRpm ? (int)Math.Ceiling(steps) : (int)Math.Round(steps)) * stepRpm;
+                    }
+
+                    idealRpm = Math.Min(idealRpm, ceilingRpm);
+                }
+
                 if (useSpikeFilter)
                 {
                     bool isEmergency = safetyEvalTemp >= Math.Min(90, settings.SafeMaxTemp);
-                    idealRpm = _smartRampGate.Apply(fanId, idealRpm, currentRpm, _hardware.GetMinRpm(fanId), safetyEvalTemp, isEmergency, now, settings);
+                    // The gate starts from the measured speed, which can read above the commandable maximum.
+                    idealRpm = Math.Min(_smartRampGate.Apply(fanId, idealRpm, currentRpm, _hardware.GetMinRpm(fanId), safetyEvalTemp, isEmergency, now, settings), ceilingRpm);
                 }
 
                 // Asymmetric Step-Down: Smooths fan deceleration to prevent bearing wear and audible chopping.
@@ -773,7 +794,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             var minRpmChange = settings.EnableMinimumRpmChangeToApply ? settings.MinimumRpmChangeToApply : 0;
             var requiredDelta = isSteppingDown ? settings.StepDownSpamProtectionDelta : minRpmChange;
-            var isSameOrClose = hadLast && (delta < requiredDelta || targetRpm == lastApplied || IsSameFirmwareValue(lastApplied, targetRpm));
+            var isSameOrClose = hadLast && (delta < requiredDelta || targetRpm == lastApplied || IsSameFirmwareValue(fanId, lastApplied, targetRpm));
             if (isSameOrClose)
             {
                 targetRpm = lastApplied;
@@ -802,8 +823,15 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         // Firmware Write Dedupe: In hundreds mode two RPM values can map to the same firmware step; re-sending it restarts the
         // firmware's speed regulation and makes the fan wobble, so such a change counts as no change.
-        private bool IsSameFirmwareValue(int rpmA, int rpmB) =>
-            _configManager.Settings.WriteRpmInHundreds && CustomFanHardware.ToFirmwareValue(rpmA) == CustomFanHardware.ToFirmwareValue(rpmB);
+        // The same applies to firmware that reports a speed step: two values within one step land on the same speed.
+        private bool IsSameFirmwareValue(int fanId, int rpmA, int rpmB)
+        {
+            if (_configManager.Settings.WriteRpmInHundreds)
+                return CustomFanHardware.ToFirmwareValue(rpmA) == CustomFanHardware.ToFirmwareValue(rpmB);
+
+            int step = _hardware.GetRpmStep(fanId);
+            return step > 1 && Math.Round(rpmA / (double)step) == Math.Round(rpmB / (double)step);
+        }
 
         private async Task<int> WriteFanRpmAsync(int fanId, int targetRpm, int currentRpm)
         {
@@ -848,7 +876,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             var now = DateTime.UtcNow.Ticks;
             if (force || now - _lastUiUpdateTicks.GetValueOrDefault(fanId) >= interval)
             {
-                _monitoring.Update(fanId, temp, rpm, targetRpm);
+                _monitoring.Update(fanId, temp, rpm, targetRpm, 0, _hardware.GetMinRpm(fanId), _hardware.GetMaxRpm(fanId), _hardware.GetRpmStep(fanId));
                 _lastUiUpdateTicks[fanId] = now;
             }
         }
@@ -869,7 +897,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 }
                 catch { /* Ignore */ }
 
-                _monitoring.Update(fanId, temp, rpm, _lastAppliedRpm.TryGetValue(fanId, out var tr) ? tr : 0);
+                _monitoring.Update(fanId, temp, rpm, _lastAppliedRpm.TryGetValue(fanId, out var tr) ? tr : 0, 0, _hardware.GetMinRpm(fanId), _hardware.GetMaxRpm(fanId), _hardware.GetRpmStep(fanId));
             }
 
             if (_configManager.Settings.IsSmartAutoEnabled)
@@ -884,17 +912,38 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         private async void OnPowerModeChanged(object? s, PowerModeListener.ChangedEventArgs e)
         {
-            await HandleModeChangeAsync();
+            try
+            {
+                await HandleModeChangeAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Mode change handling failed", ex);
+            }
         }
 
         private async void OnThermalModeChanged(object? s, ThermalModeListener.ChangedEventArgs e)
         {
-            await HandleModeChangeAsync();
+            try
+            {
+                await HandleModeChangeAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Mode change handling failed", ex);
+            }
         }
 
         private async void OnITSModeChanged(object? s, ITSModeListener.ChangedEventArgs e)
         {
-            await HandleModeChangeAsync();
+            try
+            {
+                await HandleModeChangeAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Mode change handling failed", ex);
+            }
         }
 
         private async Task HandleModeChangeAsync()

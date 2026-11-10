@@ -24,6 +24,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         public bool WriteRpmInHundreds { get; set; } = false;
         public int MinimumRpmChangeToApply { get; set; } = 50;
         public bool EnableMinimumRpmChangeToApply { get; set; } = true;
+        public int MinimumSpeedPercent { get; set; } = 10;
 
         public bool SpinUpBoostEnabled { get; set; }
         public int SpinUpBoostRpm { get; set; } = 3000;
