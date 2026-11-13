@@ -429,23 +429,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
             }
         }
         
-        /// <summary>
-        ///   Looks up a localized string similar to Enable Power Delta Filter.
-        /// </summary>
-        public static string EnablePowerDeltaThreshold {
-            get {
-                return ResourceManager.GetString("EnablePowerDeltaThreshold", resourceCulture);
-            }
-        }
         
-        /// <summary>
-        ///   Looks up a localized string similar to Filters out recalculations if the power draw change is smaller than the threshold..
-        /// </summary>
-        public static string EnablePowerDeltaThresholdDesc {
-            get {
-                return ResourceManager.GetString("EnablePowerDeltaThresholdDesc", resourceCulture);
-            }
-        }
         
         /// <summary>
         ///   Looks up a localized string similar to Predictive Engine.
@@ -492,23 +476,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
             }
         }
         
-        /// <summary>
-        ///   Looks up a localized string similar to Enable Temperature Delta Filter.
-        /// </summary>
-        public static string EnableTemperatureDeltaThreshold {
-            get {
-                return ResourceManager.GetString("EnableTemperatureDeltaThreshold", resourceCulture);
-            }
-        }
         
-        /// <summary>
-        ///   Looks up a localized string similar to Filters out recalculations if the temperature change is smaller than the threshold..
-        /// </summary>
-        public static string EnableTemperatureDeltaThresholdDesc {
-            get {
-                return ResourceManager.GetString("EnableTemperatureDeltaThresholdDesc", resourceCulture);
-            }
-        }
         
         /// <summary>
         ///   Looks up a localized string similar to Thermal Safety Net.
@@ -735,23 +703,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
             }
         }
         
-        /// <summary>
-        ///   Looks up a localized string similar to Power Delta Threshold.
-        /// </summary>
-        public static string PowerDeltaThreshold {
-            get {
-                return ResourceManager.GetString("PowerDeltaThreshold", resourceCulture);
-            }
-        }
         
-        /// <summary>
-        ///   Looks up a localized string similar to Minimum change in power consumption (W) required to trigger a recalculation..
-        /// </summary>
-        public static string PowerDeltaThresholdDesc {
-            get {
-                return ResourceManager.GetString("PowerDeltaThresholdDesc", resourceCulture);
-            }
-        }
         
         /// <summary>
         ///   Looks up a localized string similar to Predictive Engine.
@@ -1339,23 +1291,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
             }
         }
         
-        /// <summary>
-        ///   Looks up a localized string similar to Temperature Change Threshold.
-        /// </summary>
-        public static string TempDeltaThreshold {
-            get {
-                return ResourceManager.GetString("TempDeltaThreshold", resourceCulture);
-            }
-        }
         
-        /// <summary>
-        ///   Looks up a localized string similar to Minimum temperature change (°C) required to trigger a fan speed recalculation..
-        /// </summary>
-        public static string TempDeltaThresholdDesc {
-            get {
-                return ResourceManager.GetString("TempDeltaThresholdDesc", resourceCulture);
-            }
-        }
         
         /// <summary>
         ///   Looks up a localized string similar to Temperature.
@@ -1560,6 +1496,14 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         public static string FanRange {
             get {
                 return ResourceManager.GetString("FanRange", resourceCulture);
+            }
+        }
+        /// <summary>
+        ///   Looks up a localized string similar to Thermal safety floor.
+        /// </summary>
+        public static string SafetyFloorLegend {
+            get {
+                return ResourceManager.GetString("SafetyFloorLegend", resourceCulture);
             }
         }
     }

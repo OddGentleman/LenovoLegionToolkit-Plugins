@@ -28,8 +28,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             _curveSpikeFilterEnabled = s.CurveSpikeFilterEnabled;
             _smartHoldMinimumAtIdle = s.SmartHoldMinimumAtIdle;
             _syncFanLevel = s.SyncFanLevel;
-            _powerDeltaThreshold = s.PowerDeltaThreshold;
-            _temperatureDeltaThreshold = s.TemperatureDeltaThreshold;
             _ignoreZeroTemperature = s.IgnoreZeroTemperature;
             _alwaysWriteRpm = s.AlwaysWriteRpm;
             _writeRpmInHundreds = s.WriteRpmInHundreds;
@@ -70,8 +68,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             _enableThermalSafetyNet = s.EnableThermalSafetyNet;
             _enableEma = s.EnableEma;
             
-            _enableTemperatureDeltaThreshold = s.EnableTemperatureDeltaThreshold;
-            _enablePowerDeltaThreshold = s.EnablePowerDeltaThreshold;
             _enableMinimumRpmChangeToApply = s.EnableMinimumRpmChangeToApply;
             ResetToDefaultsCommand = new RelayCommand(ResetToDefaults);
         }
@@ -90,8 +86,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             Save(nameof(CustomFanCurveSettings.CurveSpikeFilterEnabled), _curveSpikeFilterEnabled);
             Save(nameof(CustomFanCurveSettings.SmartHoldMinimumAtIdle), _smartHoldMinimumAtIdle);
             Save(nameof(CustomFanCurveSettings.SyncFanLevel), _syncFanLevel);
-            Save(nameof(CustomFanCurveSettings.PowerDeltaThreshold), _powerDeltaThreshold);
-            Save(nameof(CustomFanCurveSettings.TemperatureDeltaThreshold), _temperatureDeltaThreshold);
             Save(nameof(CustomFanCurveSettings.IgnoreZeroTemperature), _ignoreZeroTemperature);
             Save(nameof(CustomFanCurveSettings.AlwaysWriteRpm), _alwaysWriteRpm);
             Save(nameof(CustomFanCurveSettings.WriteRpmInHundreds), _writeRpmInHundreds);
@@ -132,8 +126,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             Save(nameof(CustomFanCurveSettings.EnableThermalSafetyNet), _enableThermalSafetyNet);
             Save(nameof(CustomFanCurveSettings.EnableEma), _enableEma);
             
-            Save(nameof(CustomFanCurveSettings.EnableTemperatureDeltaThreshold), _enableTemperatureDeltaThreshold);
-            Save(nameof(CustomFanCurveSettings.EnablePowerDeltaThreshold), _enablePowerDeltaThreshold);
             Save(nameof(CustomFanCurveSettings.EnableMinimumRpmChangeToApply), _enableMinimumRpmChangeToApply);
         }
 
@@ -302,33 +294,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
         }
 
-        private double _powerDeltaThreshold;
-        public double PowerDeltaThreshold
-        {
-            get => _powerDeltaThreshold;
-            set
-            {
-                if (Math.Abs(_powerDeltaThreshold - value) > 0.001)
-                {
-                    _powerDeltaThreshold = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        private double _temperatureDeltaThreshold;
-        public double TemperatureDeltaThreshold
-        {
-            get => _temperatureDeltaThreshold;
-            set
-            {
-                if (Math.Abs(_temperatureDeltaThreshold - value) > 0.001)
-                {
-                    _temperatureDeltaThreshold = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
 
         private bool _ignoreZeroTemperature;
         public bool IgnoreZeroTemperature
@@ -622,7 +587,15 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         public int SafeMaxPercentAtMaxTemp
         {
             get => _safeMaxPercentAtMaxTemp;
-            set { if (_safeMaxPercentAtMaxTemp != value) { _safeMaxPercentAtMaxTemp = value; OnPropertyChanged(); } }
+            set
+            {
+                int clamped = Math.Clamp(value, 0, 100);
+                if (_safeMaxPercentAtMaxTemp != clamped)
+                {
+                    _safeMaxPercentAtMaxTemp = clamped;
+                    OnPropertyChanged();
+                }
+            }
         }
 
         private bool _enableAcousticOffset;
@@ -702,20 +675,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             set { if (_enableEma != value) { _enableEma = value; OnPropertyChanged(); } }
         }
 
-        private bool _enableTemperatureDeltaThreshold;
-        public bool EnableTemperatureDeltaThreshold
-        {
-            get => _enableTemperatureDeltaThreshold;
-            set { if (_enableTemperatureDeltaThreshold != value) { _enableTemperatureDeltaThreshold = value; OnPropertyChanged(); } }
-        }
-
-        private bool _enablePowerDeltaThreshold;
-        public bool EnablePowerDeltaThreshold
-        {
-            get => _enablePowerDeltaThreshold;
-            set { if (_enablePowerDeltaThreshold != value) { _enablePowerDeltaThreshold = value; OnPropertyChanged(); } }
-        }
-
         private bool _enableMinimumRpmChangeToApply;
         public bool EnableMinimumRpmChangeToApply
         {
@@ -739,8 +698,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             CurveSpikeFilterEnabled = defaultSettings.CurveSpikeFilterEnabled;
             SmartHoldMinimumAtIdle = defaultSettings.SmartHoldMinimumAtIdle;
             SyncFanLevel = defaultSettings.SyncFanLevel;
-            PowerDeltaThreshold = defaultSettings.PowerDeltaThreshold;
-            TemperatureDeltaThreshold = defaultSettings.TemperatureDeltaThreshold;
             IgnoreZeroTemperature = defaultSettings.IgnoreZeroTemperature;
             AlwaysWriteRpm = defaultSettings.AlwaysWriteRpm;
             WriteRpmInHundreds = defaultSettings.WriteRpmInHundreds;
@@ -781,8 +738,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             EnableThermalSafetyNet = defaultSettings.EnableThermalSafetyNet;
             EnableEma = defaultSettings.EnableEma;
 
-            EnableTemperatureDeltaThreshold = defaultSettings.EnableTemperatureDeltaThreshold;
-            EnablePowerDeltaThreshold = defaultSettings.EnablePowerDeltaThreshold;
             EnableMinimumRpmChangeToApply = defaultSettings.EnableMinimumRpmChangeToApply;
         }
 
