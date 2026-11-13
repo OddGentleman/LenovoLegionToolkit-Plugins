@@ -4,53 +4,39 @@ This is a fork of [LenovoLegionToolkit-Team/LenovoLegionToolkit-Plugins](https:/
 
 ## Why this fork exists
 
-On a **Legion 5 16IRX9** (machine type 83DG, BIOS NMCN34WW), the upstream plugin did not work:
+On a **Legion 5 16IRX9** (machine type 83DG, BIOS NMCN34WW), the upstream plugin's Smart Auto (AI) mode did not work well:
 
-- **Custom curve mode:** the fan curve didn't apply. CPU fan always at 100%.
-- **Smart Auto (AI) mode:**
-  - At idle, the fans burst by up to +1,500 RPM from any powerdraw rise although temps rose only by 1-2C.
-  - The fans never settled. At idle the BIOS took over and wandered between 1,700 and 1,900 RPM.
-  - Target 0 RPM is not supported.
-  - In games, the fans swung up and down with every temperature peak.
+- At idle, the fans burst by up to +1,500 RPM from any powerdraw rise although temps rose only by 1-2C.
+- The fans never settled. At idle the BIOS took over and wandered between 1,700 and 1,900 RPM.
+- Target 0 RPM is not supported.
+- In games, the fans swung up and down with every temperature peak.
 
-The plugin was sending values that this firmware reads differently.
+This README covers only what this fork changes. For everything else, see the [upstream README](https://github.com/LenovoLegionToolkit-Team/LenovoLegionToolkit-Plugins).
 
 Only the 16IRX9 has been tested. Other Legion models with the same firmware behaviour are likely affected too.
 
 ## What was wrong in the upstream plugin
 
-**1. Fan speeds were written in the wrong units.**
-This firmware reads the `SetFeatureValue` fan speed as a single byte in units of 100 RPM. It keeps only the lowest byte of the raw RPM value the plugin sends. Measured over WMI:
-
-| Plugin writes | Firmware keeps | Measured fan speed |
-|---|---|---|
-| 1048 | 24 | 2,400 RPM |
-| 1800 | 8 | 800 RPM |
-| 1500 – 5000 | 136 – 220 | full speed (5,600 RPM) |
-
-Most curve targets therefore landed on a high byte and ran the fan at full speed. Reading fan speeds was never affected, since reads return plain RPM.
-
-**2. Keep-alive writes made the fans oscillate.**
+**1. Keep-alive writes made the fans oscillate.**
 With "Always write RPM" on, the plugin re-sent the same value every 2.5 seconds. Each write restarted the firmware's speed regulation. At a steady target the fan dipped and overshot between 1,200 and 1,500 RPM, in step with the writes.
 
-**3. Smart Auto reacted to short power spikes.**
+**2. Smart Auto reacted to short power spikes.**
 Up to 40% of the fan speed came straight from the momentary CPU power draw, with no smoothing. Opening an app was enough to make the fans burst.
 
-**4. Smart Auto handed idle control to the BIOS.**
+**3. Smart Auto handed idle control to the BIOS.**
 At idle, the Smart Auto target (about 885 RPM) was below the fan minimum. The plugin then wrote `0`, which on Lenovo firmware means "BIOS, take over". It re-sent that every 2.5 seconds, so the BIOS's own fluctuating idle speed ran the fans.
 
-**5. Smart Auto's power range was fixed at 20–65 W.**
+**4. Smart Auto's power range was fixed at 20–65 W.**
 The GPU in this laptop draws up to 140 W, so any game counted as full load. That kept the GPU fan near maximum regardless of how hard the GPU was actually working.
 
 ## What was fixed and how
 
 | Problem | Fix |
 |---|---|
-| 1. Wrong units | New `WriteRpmInHundreds` setting. When on, every write is converted to hundreds of RPM (1,800 → 18). |
-| 2. Keep-alive oscillation | Turn off the existing `AlwaysWriteRpm` setting. No code change needed. |
-| 3. Power spikes | New *ramp gate* between Smart Auto and the fans, described below. On by default, with a **Spike Filter** switch under Settings → Advanced. |
-| 4. BIOS idle handoff | New **Hold Minimum Speed at Idle** switch under Settings → Advanced (off by default). When on, Smart Auto holds the fan minimum instead of writing `0`. Custom curve mode is unchanged. |
-| 5. Fixed power range | Idle and full-load watts are now settings, separately for CPU and GPU. |
+| 1. Keep-alive oscillation | Turn off the existing `AlwaysWriteRpm` setting. No code change needed. |
+| 2. Power spikes | New *ramp gate* between Smart Auto and the fans, described below. On by default, with a **Spike Filter** switch under Settings → Advanced. |
+| 3. BIOS idle handoff | New **Hold Minimum Speed at Idle** switch under Settings → Advanced (off by default). When on, Smart Auto holds the fan minimum instead of writing `0`. Custom curve mode is unchanged. |
+| 4. Fixed power range | Idle and full-load watts are now settings, separately for CPU and GPU. |
 | Confusing settings | Settings that Smart Auto ignores are now greyed out with a "Not used while Smart Auto is on" note: calculation interval, hysteresis, step-down gliding and spin-up boost. |
 | Sensor source hidden in Smart Auto | Smart Auto reads each fan's sensor source, but turning it on hid the curve editor, and the sensor dropdown with it. A fan left on "Average of CPU / GPU" from curve mode kept that setting with no way to see or change it. The Smart Auto dashboard now shows a sensor dropdown for each fan. The options were renamed to say what they follow: the old "System Default (Auto)" is now named after the fan's own chip (**CPU temperature** or **GPU temperature**), and the others read **Hotter of CPU and GPU** and **Average of CPU and GPU**. |
 | Fans stopped after Fn+Q | Switching from Custom to Balance mode with Fn+Q left both fans stopped and the CPU throttled to about 400 MHz. The firmware takes the fans back by itself about 3 s after a mode switch, and the plugin's hand-back write, sent 0.3 s after the switch, interfered. The plugin now waits until 5 s have passed since the last mode switch (each further Fn+Q press restarts the wait) and hands back only if the fans are still at its speeds. With "apply to all power modes" on, it re-sends its targets once the firmware has settled. |
@@ -72,7 +58,7 @@ The ramp gate works like this:
 
 These changes are on `main` only, not in the upstream proposal. They were checked against 3.5 hours of debug logs from the 16IRX9.
 
-**Duplicate writes are skipped.** In hundreds mode, two different RPM targets can land on the same firmware step (for example 3,110 and 3,140 both become 31). Re-sending the same step restarts the firmware's speed regulation, the same wobble described in problem 2. About 16% of all writes did that. The plugin now treats a change within the same step as no change. A fan that has drifted far from its target is still re-sent its value.
+**Duplicate writes are skipped.** In hundreds mode, two different RPM targets can land on the same firmware step (for example 3,110 and 3,140 both become 31). Re-sending the same step restarts the firmware's speed regulation, the same wobble described in problem 1. About 16% of all writes did that. The plugin now treats a change within the same step as no change. A fan that has drifted far from its target is still re-sent its value.
 
 **Fan Speed Sync no longer re-writes every cycle.** Whenever Sync raised a fan's target, it forced a write even when the fan already had that value. It now writes only real changes.
 
@@ -122,13 +108,11 @@ A new **Curve Spike Filter** switch under Settings → Advanced (off by default)
 
 The Spike Filter is on by default. Every other new setting defaults to the upstream behaviour, so nothing else changes until you set it.
 
-- **In the settings screen** (Settings → Advanced): turn on **Write RPM in Hundreds**, **Hold Minimum Speed at Idle** for Smart Auto, and **Curve Spike Filter** for custom curves. Set **Minimum Fan Speed** to 17% (see below).
+- **In the settings screen** (Settings → Advanced): turn on **Hold Minimum Speed at Idle** for Smart Auto, and **Curve Spike Filter** for custom curves. On the 16IRX9, also turn on upstream's **Write RPM in Hundreds** and set **Minimum Fan Speed** to 17% (see below).
 - **In the config file:** the rest aren't in the settings screen yet. With Legion Toolkit closed, add or adjust them in `%LOCALAPPDATA%\LenovoLegionToolkit\Plugins\Configs\CustomFanCurve\custom_fan_curve_settings.json`:
 
 ```json
 "SmartHoldMinimumAtIdle": true,
-"WriteRpmInHundreds": true,
-"MinimumSpeedPercent": 17,
 "AlwaysWriteRpm": false,
 "SmartCpuIdlePowerW": 20,
 "SmartCpuFullPowerW": 70,
@@ -144,8 +128,6 @@ If your config came from an earlier build of this fork, check `SmartSustainedWin
 
 Set the power values to your own limits: the CPU long-term power limit, and the GPU TGP plus Dynamic Boost.
 
-Your machine probably needs `WriteRpmInHundreds` if custom curves run the fans at full speed, or if the measured fan speeds bear no relation to the targets shown in the plugin.
+**Minimum fan speed.** The 16IRX9 firmware reports a fan minimum of 0, so the minimum comes from upstream's **Minimum Fan Speed** percentage. 17% of the 5,600 RPM maximum gives 1,000 RPM, the speed the idle hold was tested at; the default of 10% gives 600 RPM. Unlike upstream, which raises every target below the minimum up to it, this fork keeps its own handling: curve targets below the minimum hand the fan back to the BIOS, and Smart Auto with **Hold Minimum Speed at Idle** holds the minimum.
 
-**Fan range from the firmware.** Upstream now reads each fan's maximum, minimum and speed step from the firmware's fan table. On the 16IRX9 it reports 5,600 RPM maximum and 100 RPM steps for both fans, so curve percentages now scale to 5,600 instead of the 5,900 / 6,000 found by the old probe (a 30% point now means about 1,700 RPM). It reports a minimum of 0, so the minimum comes from **Minimum Fan Speed** (a percentage of the maximum, rounded up to a whole step). Its default of 10% gives 600 RPM. 17% gives 1,000 RPM, the minimum this fork used before, and the speed the idle hold was tested at. In this fork, curve targets below the minimum still hand the fan back to the BIOS, and Smart Auto with **Hold Minimum Speed at Idle** still holds the minimum.
-
-Fixes 1–5 are on the [`fix/wmi-units-and-smart-auto`](https://github.com/OddGentleman/LenovoLegionToolkit-Plugins/tree/fix/wmi-units-and-smart-auto) branch as separate commits, intended for upstream. The further tuning is on `main` only. For build instructions, see the [upstream README](https://github.com/LenovoLegionToolkit-Team/LenovoLegionToolkit-Plugins#building).
+Fixes 1–4 are on the [`fix/wmi-units-and-smart-auto`](https://github.com/OddGentleman/LenovoLegionToolkit-Plugins/tree/fix/wmi-units-and-smart-auto) branch as separate commits, intended for upstream. That branch also carries a units fix that upstream has since added as **Write RPM in Hundreds**. The further tuning is on `main` only. For build instructions, see the [upstream README](https://github.com/LenovoLegionToolkit-Team/LenovoLegionToolkit-Plugins#building).
