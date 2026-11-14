@@ -47,7 +47,7 @@ The ramp gate works like this:
 - **Short spikes are ignored.** A higher demand must last 5 seconds before the fans respond. The wait shrinks as the temperature approaches 85°C, so a real heat-up, such as a game starting, gets a fast response. A single hot reading never triggers it.
 - **Ramps are smooth.** The fans ramp up gradually. When demand drops, they hold for 3 seconds, then glide down.
 - **Games get steadier fans.** Under sustained heat (30-second average of the hotter chip at 72°C or above), the gate switches to longer holds (15 s), a slower glide down and gentler climbs. The fans then stay steady between peaks instead of following every one. In the test game the chip averaged 75–78°C; desktop bursts such as app launches and update checks averaged 67–70°C. An earlier version counted ramp-ups instead (two within 2 minutes), and ordinary desktop use triggered it.
-- **Safety isn't delayed.** At 90°C the fans respond instantly, and the existing 95°C critical override is unchanged.
+- **Safety isn't delayed.** At 90°C the fans respond instantly, and the 95°C critical override still applies.
 
 **Results on the 16IRX9:**
 - Idle: a flat 1,000 RPM instead of the BIOS's 1,700–1,900 RPM.
@@ -78,6 +78,23 @@ These changes are on `main` only, not in the upstream proposal. They were checke
 
 A new **Curve Spike Filter** switch under Settings → Advanced (off by default) runs the curve's target through the same ramp gate as Smart Auto, with the same timings. Short spikes are ignored, rises ramp up gradually, decreases hold before gliding down, and sustained heat gets longer holds. The emergency bypass and critical override still apply. Calculation Delay and Step-Down Glide are greyed out while it's on.
 
+**The critical override ignores short spikes.** At 95°C the plugin sends both fans to full speed. It reads raw temperatures, so a 1-second boost spike was enough. In a 1-hour gaming log it fired twice, each time on a single 95–96°C reading while HWiNFO showed the CPU at 83–84°C, and the fans then ran at up to 6,100 RPM for about 30 seconds. The temperature now has to stay at or above the critical temperature for **Critical Temperature Hold** seconds (2 by default; 0 restores the instant override). A real heat-up still gets full speed within 2 seconds, before the CPU's own 97°C throttle point.
+
+**Smart Auto's power range can follow the power mode.** With **Sync with Power Mode** on, the full-load watts come from the active power mode instead of the manual fields: the Custom mode preset in Legion Toolkit, or the firmware's defaults for Quiet, Balance, Performance and Extreme (the same per-mode values Legion Toolkit reads). The CPU uses the long-term power limit, the GPU its TGP plus Dynamic Boost. On the 16IRX9 the firmware reports:
+
+| Mode | CPU full load | GPU full load |
+|---|---|---|
+| Quiet | 55 W | 65 W |
+| Balance | 70 W | 80 W |
+| Performance | 100 W | 140 W |
+| Extreme | 110 W | 140 W |
+
+Custom mode changes apply on the next cycle, without a restart. Idle power stays manual. The plugin only drives the fans outside Custom mode with **Apply to All Power Modes** on.
+
+**All tuning is in the settings screen.** The spike filter timings, the sustained-heat values, the Smart Auto power range and the critical hold used to be config-file only. They are now under Settings → Advanced, each with a description, in sections that grey out when the feature they belong to is off.
+
+**Saving settings applies them once.** The settings window saved each of its 65 settings separately, and every save rewrote the config file and triggered a power mode check and fan refresh: 70 mode checks within half a second in the debug log. Saving now writes only the settings that changed, with one file write and one refresh.
+
 **Settings for custom curves on this laptop:** turn on **Curve Spike Filter**, keep EMA at 0.35, and leave Hysteresis and Predictive Engine off. Keep the curve flat up to a few degrees above the idle temperature (this CPU idles around 56–61°C), so idle wobble doesn't move the fans.
 
 **Other settings for Smart Auto on this laptop:**
@@ -91,8 +108,12 @@ A new **Curve Spike Filter** switch under Settings → Advanced (off by default)
 | Hysteresis | Off | Only applies to curve mode |
 | Asymmetric Step-Down | Off | Smart Auto's ramp gate already glides down |
 | Spin-Up Boost | Off | Only fires when a fan starts from 0 RPM, which Smart Auto no longer sends |
+| Hold Minimum Speed at Idle | **On** | Without it, Smart Auto's idle target falls below the 1,000 RPM minimum, the BIOS takes both fans and runs them together at 1,700–1,900 RPM |
+| Sync with Power Mode | **On** | Full load follows the power mode's own limits, so Quiet and Balance don't count a moderate load as full |
+| Critical Temperature | **95°C** | 2°C below this CPU's 97°C throttle point, so full speed starts before throttling |
+| Critical Temperature Hold | **2 s** | Skips the full-speed bursts from 1-second boost spikes |
 | GPU fan sensor source | **GPU temperature** | "Hotter of CPU and GPU" made the GPU fan follow the CPU at idle (about 1,400 instead of 1,000 RPM) for only about 1°C lower CPU idle temperature. GPU temperature keeps the GPU fan silent, and the Thermal Safety Net still brings it in when either chip is above 75°C. Set per fan on the Smart Auto dashboard, or as `SensorSource` in the config (0 own chip, 1 hotter, 2 average). |
-| CPU fan sensor source | CPU temperature or Average | Your choice. With the 1,000 RPM idle hold and the CPU under 20 W, the CPU fan rises above 1,000 RPM at about 60°C on **CPU temperature**. The CPU idles around 56°C, so light tasks lift it often. On **Average of CPU and GPU** it rises when the average reaches about 60°C, roughly 120 − GPU temperature on the CPU: about 77°C while the GPU sleeps at 43°C. That's quieter but slower to react to CPU-only heat. Either way, the Thermal Safety Net brings it in at about 78°C. These thresholds are calculated from the Smart Auto formula, not measured. |
+| CPU fan sensor source | CPU temperature or Average | Your choice. With the 1,000 RPM idle hold and the CPU under 20 W, the CPU fan rises above 1,000 RPM at about 62°C on **CPU temperature** (about 57°C at 30 W, and at any temperature from about 46 W). The CPU idles around 58–61°C, so light tasks lift it often. On **Average of CPU and GPU** it rises when the average reaches about 60°C, roughly 120 − GPU temperature on the CPU: about 77°C while the GPU sleeps at 43°C. That's quieter but slower to react to CPU-only heat. Either way, the Thermal Safety Net brings it in at about 78°C. These thresholds are calculated from the Smart Auto formula, not measured. |
 
 **Debug log fields.** With Debug Mode on, each `recalc` line in `%LOCALAPPDATA%\LenovoLegionToolkit\log\plugin_LenovoLegionToolkit.Plugin.CustomFanCurve.CustomFanCurveProvider.log` also records:
 
@@ -108,25 +129,12 @@ A new **Curve Spike Filter** switch under Settings → Advanced (off by default)
 
 The Spike Filter is on by default. Every other new setting defaults to the upstream behaviour, so nothing else changes until you set it.
 
-- **In the settings screen** (Settings → Advanced): turn on **Hold Minimum Speed at Idle** for Smart Auto, and **Curve Spike Filter** for custom curves. On the 16IRX9, also turn on upstream's **Write RPM in Hundreds** and set **Minimum Fan Speed** to 17% (see below).
-- **In the config file:** the rest aren't in the settings screen yet. With Legion Toolkit closed, add or adjust them in `%LOCALAPPDATA%\LenovoLegionToolkit\Plugins\Configs\CustomFanCurve\custom_fan_curve_settings.json`:
+Everything is in the settings screen:
 
-```json
-"SmartHoldMinimumAtIdle": true,
-"AlwaysWriteRpm": false,
-"SmartCpuIdlePowerW": 20,
-"SmartCpuFullPowerW": 70,
-"SmartGpuIdlePowerW": 20,
-"SmartGpuFullPowerW": 140,
-"EnableEma": true,
-"EmaAlpha": 0.35,
-"SmartSustainedWindowSeconds": 30,
-"SmartSustainedTemp": 72,
-```
+- **Settings → Advanced:** turn on **Hold Minimum Speed at Idle** and **Sync with Power Mode** for Smart Auto, and **Curve Spike Filter** for custom curves. On the 16IRX9, also turn on upstream's **Write RPM in Hundreds** and set **Minimum Fan Speed** to 17% (see below). Without the sync, set **CPU Full-Load Power** to the CPU long-term power limit and **GPU Full-Load Power** to the GPU TGP plus Dynamic Boost (70 W and 140 W in this laptop's Custom mode).
+- **Other pages:** turn off **Always Write RPM**, and turn on EMA at 0.35. Set the CPU and GPU fans' sensor source on the Smart Auto dashboard (see the table above).
 
-If your config came from an earlier build of this fork, check `SmartSustainedWindowSeconds`. It used to mean "two ramp-ups within this many seconds" (saved as 120). It now sets the averaging time for sustained-heat detection, and 30 is the tested value.
-
-Set the power values to your own limits: the CPU long-term power limit, and the GPU TGP plus Dynamic Boost.
+If your config came from an earlier build of this fork, check **Averaging Time** under Sustained Heat (`SmartSustainedWindowSeconds`). It used to mean "two ramp-ups within this many seconds" (saved as 120). It now sets the averaging time for sustained-heat detection, and 30 is the tested value.
 
 **Minimum fan speed.** The 16IRX9 firmware reports a fan minimum of 0, so the minimum comes from upstream's **Minimum Fan Speed** percentage. 17% of the 5,600 RPM maximum gives 1,000 RPM, the speed the idle hold was tested at; the default of 10% gives 600 RPM. Unlike upstream, which raises every target below the minimum up to it, this fork keeps its own handling: curve targets below the minimum hand the fan back to the BIOS, and Smart Auto with **Hold Minimum Speed at Idle** holds the minimum.
 
