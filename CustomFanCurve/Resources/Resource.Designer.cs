@@ -1506,5 +1506,419 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
                 return ResourceManager.GetString("SafetyFloorLegend", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Spike Filter Timing.
+        /// </summary>
+        public static string SpikeFilterTimingHeader {
+            get {
+                return ResourceManager.GetString("SpikeFilterTimingHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Used by the Smart Auto Spike Filter and the Curve Spike Filt.
+        /// </summary>
+        public static string SpikeFilterTimingNote {
+            get {
+                return ResourceManager.GetString("SpikeFilterTimingNote", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Spike Wait (s).
+        /// </summary>
+        public static string SmartSpikeIgnoreSecondsLabel {
+            get {
+                return ResourceManager.GetString("SmartSpikeIgnoreSecondsLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to How long a higher demand must last before the fans start ram.
+        /// </summary>
+        public static string SmartSpikeIgnoreSecondsDesc {
+            get {
+                return ResourceManager.GetString("SmartSpikeIgnoreSecondsDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Ramp-Up Rate (RPM/s).
+        /// </summary>
+        public static string SmartRampUpRpmPerSecLabel {
+            get {
+                return ResourceManager.GetString("SmartRampUpRpmPerSecLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to How fast the fans climb once a rise is accepted, while the t.
+        /// </summary>
+        public static string SmartRampUpRpmPerSecDesc {
+            get {
+                return ResourceManager.GetString("SmartRampUpRpmPerSecDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Urgent Ramp-Up Rate (RPM/s).
+        /// </summary>
+        public static string SmartUrgentRampUpRpmPerSecLabel {
+            get {
+                return ResourceManager.GetString("SmartUrgentRampUpRpmPerSecLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Climb rate at the urgency full temperature. Between the urge.
+        /// </summary>
+        public static string SmartUrgentRampUpRpmPerSecDesc {
+            get {
+                return ResourceManager.GetString("SmartUrgentRampUpRpmPerSecDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Urgency Start Temperature (°C).
+        /// </summary>
+        public static string SmartUrgencyStartTempLabel {
+            get {
+                return ResourceManager.GetString("SmartUrgencyStartTempLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Temperature where the spike wait starts shrinking and ramp-u.
+        /// </summary>
+        public static string SmartUrgencyStartTempDesc {
+            get {
+                return ResourceManager.GetString("SmartUrgencyStartTempDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Urgency Full Temperature (°C).
+        /// </summary>
+        public static string SmartUrgencyFullTempLabel {
+            get {
+                return ResourceManager.GetString("SmartUrgencyFullTempLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Temperature where the spike wait is gone and the fans climb .
+        /// </summary>
+        public static string SmartUrgencyFullTempDesc {
+            get {
+                return ResourceManager.GetString("SmartUrgencyFullTempDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Decrease Hold (s).
+        /// </summary>
+        public static string SmartDecreaseHoldSecondsLabel {
+            get {
+                return ResourceManager.GetString("SmartDecreaseHoldSecondsLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to How long the fans keep their speed after demand drops, befor.
+        /// </summary>
+        public static string SmartDecreaseHoldSecondsDesc {
+            get {
+                return ResourceManager.GetString("SmartDecreaseHoldSecondsDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Ramp-Down Rate (RPM/s).
+        /// </summary>
+        public static string SmartRampDownRpmPerSecLabel {
+            get {
+                return ResourceManager.GetString("SmartRampDownRpmPerSecLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to How fast the fans glide down after the hold..
+        /// </summary>
+        public static string SmartRampDownRpmPerSecDesc {
+            get {
+                return ResourceManager.GetString("SmartRampDownRpmPerSecDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Sustained Heat.
+        /// </summary>
+        public static string SustainedHeatHeader {
+            get {
+                return ResourceManager.GetString("SustainedHeatHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Under sustained heat, such as gaming, the spike filter holds.
+        /// </summary>
+        public static string SustainedHeatNote {
+            get {
+                return ResourceManager.GetString("SustainedHeatNote", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Averaging Time (s).
+        /// </summary>
+        public static string SmartSustainedWindowSecondsLabel {
+            get {
+                return ResourceManager.GetString("SmartSustainedWindowSecondsLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to How many seconds of the hotter chip's temperature are averag.
+        /// </summary>
+        public static string SmartSustainedWindowSecondsDesc {
+            get {
+                return ResourceManager.GetString("SmartSustainedWindowSecondsDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Sustained Heat Temperature (°C).
+        /// </summary>
+        public static string SmartSustainedTempLabel {
+            get {
+                return ResourceManager.GetString("SmartSustainedTempLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The averaged temperature counts as sustained heat at or abov.
+        /// </summary>
+        public static string SmartSustainedTempDesc {
+            get {
+                return ResourceManager.GetString("SmartSustainedTempDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Sustained Decrease Hold (s).
+        /// </summary>
+        public static string SmartSustainedHoldSecondsLabel {
+            get {
+                return ResourceManager.GetString("SmartSustainedHoldSecondsLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Hold before gliding down under sustained heat. The longer of.
+        /// </summary>
+        public static string SmartSustainedHoldSecondsDesc {
+            get {
+                return ResourceManager.GetString("SmartSustainedHoldSecondsDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Sustained Ramp-Down Rate (RPM/s).
+        /// </summary>
+        public static string SmartSustainedRampDownRpmPerSecLabel {
+            get {
+                return ResourceManager.GetString("SmartSustainedRampDownRpmPerSecLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Glide-down rate under sustained heat. The slower of this and.
+        /// </summary>
+        public static string SmartSustainedRampDownRpmPerSecDesc {
+            get {
+                return ResourceManager.GetString("SmartSustainedRampDownRpmPerSecDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Sustained Ramp-Up Rate (RPM/s).
+        /// </summary>
+        public static string SmartSustainedRampUpRpmPerSecLabel {
+            get {
+                return ResourceManager.GetString("SmartSustainedRampUpRpmPerSecLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Highest climb rate under sustained heat, so rises stay gentl.
+        /// </summary>
+        public static string SmartSustainedRampUpRpmPerSecDesc {
+            get {
+                return ResourceManager.GetString("SmartSustainedRampUpRpmPerSecDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Smart Auto Power Range.
+        /// </summary>
+        public static string SmartPowerRangeHeader {
+            get {
+                return ResourceManager.GetString("SmartPowerRangeHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Smart Auto maps power draw onto 0–100% load between these va.
+        /// </summary>
+        public static string SmartPowerRangeNote {
+            get {
+                return ResourceManager.GetString("SmartPowerRangeNote", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CPU Idle Power (W).
+        /// </summary>
+        public static string SmartCpuIdlePowerWLabel {
+            get {
+                return ResourceManager.GetString("SmartCpuIdlePowerWLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CPU power at or below which the CPU counts as idle..
+        /// </summary>
+        public static string SmartCpuIdlePowerWDesc {
+            get {
+                return ResourceManager.GetString("SmartCpuIdlePowerWDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CPU Full-Load Power (W).
+        /// </summary>
+        public static string SmartCpuFullPowerWLabel {
+            get {
+                return ResourceManager.GetString("SmartCpuFullPowerWLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CPU power that counts as full load. Set it to the CPU long-t.
+        /// </summary>
+        public static string SmartCpuFullPowerWDesc {
+            get {
+                return ResourceManager.GetString("SmartCpuFullPowerWDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to GPU Idle Power (W).
+        /// </summary>
+        public static string SmartGpuIdlePowerWLabel {
+            get {
+                return ResourceManager.GetString("SmartGpuIdlePowerWLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to GPU power at or below which the GPU counts as idle..
+        /// </summary>
+        public static string SmartGpuIdlePowerWDesc {
+            get {
+                return ResourceManager.GetString("SmartGpuIdlePowerWDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to GPU Full-Load Power (W).
+        /// </summary>
+        public static string SmartGpuFullPowerWLabel {
+            get {
+                return ResourceManager.GetString("SmartGpuFullPowerWLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to GPU power that counts as full load. Set it to the GPU TGP pl.
+        /// </summary>
+        public static string SmartGpuFullPowerWDesc {
+            get {
+                return ResourceManager.GetString("SmartGpuFullPowerWDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Critical Temperature Override.
+        /// </summary>
+        public static string CriticalOverrideHeader {
+            get {
+                return ResourceManager.GetString("CriticalOverrideHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Critical Temperature Hold (s).
+        /// </summary>
+        public static string CriticalTempHoldSecondsLabel {
+            get {
+                return ResourceManager.GetString("CriticalTempHoldSecondsLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to How long the hotter chip must stay at or above the critical .
+        /// </summary>
+        public static string CriticalTempHoldSecondsDesc {
+            get {
+                return ResourceManager.GetString("CriticalTempHoldSecondsDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Sync with Power Mode.
+        /// </summary>
+        public static string SyncPowerRangeWithPowerMode {
+            get {
+                return ResourceManager.GetString("SyncPowerRangeWithPowerMode", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Takes the full-load power from the power mode in use: the Cu.
+        /// </summary>
+        public static string SyncPowerRangeWithPowerModeDesc {
+            get {
+                return ResourceManager.GetString("SyncPowerRangeWithPowerModeDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0}: CPU {1}, GPU {2}.
+        /// </summary>
+        public static string SyncPowerRangeValues {
+            get {
+                return ResourceManager.GetString("SyncPowerRangeValues", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Power mode limits are not available yet on this device. The .
+        /// </summary>
+        public static string SyncPowerRangeUnavailable {
+            get {
+                return ResourceManager.GetString("SyncPowerRangeUnavailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Custom.
+        /// </summary>
+        public static string SyncPowerRangeCustomMode {
+            get {
+                return ResourceManager.GetString("SyncPowerRangeCustomMode", resourceCulture);
+            }
+        }
+
     }
 }

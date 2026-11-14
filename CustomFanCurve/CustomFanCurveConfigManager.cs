@@ -13,8 +13,42 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private readonly object _lock = new();
         private readonly SemaphoreSlim _asyncLock = new(1, 1);
 
+        private int _batchDepth;
+        private bool _batchDirty;
+
         public CustomFanCurveSettings Settings => _settings;
         public event Action? SettingsChanged;
+
+        // Batch Update: Saving the settings window writes every setting; inside a batch only real changes are applied,
+        // and the file is written and SettingsChanged raised once at the end instead of once per setting.
+        public IDisposable BeginBatch()
+        {
+            lock (_lock) { _batchDepth++; }
+            return new BatchScope(this);
+        }
+
+        private void EndBatch()
+        {
+            bool notify;
+            lock (_lock)
+            {
+                if (--_batchDepth > 0) return;
+                notify = _batchDirty;
+                _batchDirty = false;
+                if (notify) _store.Save(_settings);
+            }
+
+            if (notify) SettingsChanged?.Invoke();
+        }
+
+        private sealed class BatchScope(CustomFanCurveConfigManager owner) : IDisposable
+        {
+            private int _disposed;
+            public void Dispose()
+            {
+                if (Interlocked.Exchange(ref _disposed, 1) == 0) owner.EndBatch();
+            }
+        }
 
         public CustomFanCurveConfigManager(PluginSettings store)
         {
@@ -61,6 +95,15 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 if (prop != null && prop.CanWrite)
                 {
                     var oldValue = prop.GetValue(_settings);
+                    if (_batchDepth > 0)
+                    {
+                        if (Equals(oldValue, value)) return;
+                        prop.SetValue(_settings, value);
+                        Logger.Debug($"Setting '{propertyName}' updated from '{oldValue}' to '{value}'");
+                        _batchDirty = true;
+                        return;
+                    }
+
                     prop.SetValue(_settings, value);
                     Logger.Debug($"Setting '{propertyName}' updated from '{oldValue}' to '{value}'");
                     _store.Save(_settings);

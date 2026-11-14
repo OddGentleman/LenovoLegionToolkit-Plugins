@@ -20,10 +20,10 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         }
 
         private static float GetCpuLoad(HardwareSensorSnapshot snapshot, CustomFanCurveSettings settings) =>
-            GetPowerLoad(snapshot[SensorItem.CpuPower], settings.SmartCpuIdlePowerW, settings.SmartCpuFullPowerW);
+            GetPowerLoad(snapshot[SensorItem.CpuPower], settings.SmartCpuIdlePowerW, PowerRangeSource.GetCpuFullPowerW(settings));
 
         private static float GetGpuLoad(HardwareSensorSnapshot snapshot, CustomFanCurveSettings settings) =>
-            GetPowerLoad(snapshot[SensorItem.GpuPower], settings.SmartGpuIdlePowerW, settings.SmartGpuFullPowerW);
+            GetPowerLoad(snapshot[SensorItem.GpuPower], settings.SmartGpuIdlePowerW, PowerRangeSource.GetGpuFullPowerW(settings));
 
         public static int CalculateSmartRpm(HardwareSensorSnapshot snapshot, float evalTemp, int maxRpm, int currentTargetRpm, int fanIndex, CustomFanCurveSettings settings)
         {

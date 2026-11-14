@@ -604,4 +604,142 @@
   <data name="SafetyFloorLegend" xml:space="preserve">
     <value>热安全下限</value>
   </data>
+  <data name="SpikeFilterTimingHeader" xml:space="preserve">
+    <value>尖峰过滤时序</value>
+  </data>
+  <data name="SpikeFilterTimingNote" xml:space="preserve">
+    <value>用于智能自动控制尖峰过滤和曲线尖峰过滤（以开启者为准）。</value>
+  </data>
+  <data name="SmartSpikeIgnoreSecondsLabel" xml:space="preserve">
+    <value>尖峰等待（秒）</value>
+  </data>
+  <data name="SmartSpikeIgnoreSecondsDesc" xml:space="preserve">
+    <value>更高的转速需求必须持续多久，风扇才开始升速。在紧急起始温度与紧急完全温度之间逐渐缩短至 0。</value>
+  </data>
+  <data name="SmartRampUpRpmPerSecLabel" xml:space="preserve">
+    <value>升速速率（RPM/秒）</value>
+  </data>
+  <data name="SmartRampUpRpmPerSecDesc" xml:space="preserve">
+    <value>温度低于紧急起始温度时，升速被接受后风扇的爬升速度。</value>
+  </data>
+  <data name="SmartUrgentRampUpRpmPerSecLabel" xml:space="preserve">
+    <value>紧急升速速率（RPM/秒）</value>
+  </data>
+  <data name="SmartUrgentRampUpRpmPerSecDesc" xml:space="preserve">
+    <value>达到紧急完全温度时的爬升速度。在两个紧急温度之间，速率从升速速率逐渐过渡到此值。</value>
+  </data>
+  <data name="SmartUrgencyStartTempLabel" xml:space="preserve">
+    <value>紧急起始温度（°C）</value>
+  </data>
+  <data name="SmartUrgencyStartTempDesc" xml:space="preserve">
+    <value>尖峰等待开始缩短、升速开始加快的温度。</value>
+  </data>
+  <data name="SmartUrgencyFullTempLabel" xml:space="preserve">
+    <value>紧急完全温度（°C）</value>
+  </data>
+  <data name="SmartUrgencyFullTempDesc" xml:space="preserve">
+    <value>尖峰等待完全取消、风扇以紧急速率爬升的温度。</value>
+  </data>
+  <data name="SmartDecreaseHoldSecondsLabel" xml:space="preserve">
+    <value>降速保持（秒）</value>
+  </data>
+  <data name="SmartDecreaseHoldSecondsDesc" xml:space="preserve">
+    <value>需求下降后，风扇在平滑降速前保持当前转速的时间。</value>
+  </data>
+  <data name="SmartRampDownRpmPerSecLabel" xml:space="preserve">
+    <value>降速速率（RPM/秒）</value>
+  </data>
+  <data name="SmartRampDownRpmPerSecDesc" xml:space="preserve">
+    <value>保持结束后风扇平滑降速的速度。</value>
+  </data>
+  <data name="SustainedHeatHeader" xml:space="preserve">
+    <value>持续高温</value>
+  </data>
+  <data name="SustainedHeatNote" xml:space="preserve">
+    <value>在持续高温（如游戏）下，尖峰过滤会保持更久、变化更平缓，使风扇在峰值之间保持稳定。</value>
+  </data>
+  <data name="SmartSustainedWindowSecondsLabel" xml:space="preserve">
+    <value>平均时间（秒）</value>
+  </data>
+  <data name="SmartSustainedWindowSecondsDesc" xml:space="preserve">
+    <value>用于判断持续高温时，对较热芯片温度取平均的秒数。</value>
+  </data>
+  <data name="SmartSustainedTempLabel" xml:space="preserve">
+    <value>持续高温阈值（°C）</value>
+  </data>
+  <data name="SmartSustainedTempDesc" xml:space="preserve">
+    <value>平均温度达到或超过此值时视为持续高温。</value>
+  </data>
+  <data name="SmartSustainedHoldSecondsLabel" xml:space="preserve">
+    <value>持续高温降速保持（秒）</value>
+  </data>
+  <data name="SmartSustainedHoldSecondsDesc" xml:space="preserve">
+    <value>持续高温下平滑降速前的保持时间。取此值与降速保持中较长者。</value>
+  </data>
+  <data name="SmartSustainedRampDownRpmPerSecLabel" xml:space="preserve">
+    <value>持续高温降速速率（RPM/秒）</value>
+  </data>
+  <data name="SmartSustainedRampDownRpmPerSecDesc" xml:space="preserve">
+    <value>持续高温下的平滑降速速度。取此值与降速速率中较慢者。</value>
+  </data>
+  <data name="SmartSustainedRampUpRpmPerSecLabel" xml:space="preserve">
+    <value>持续高温升速速率（RPM/秒）</value>
+  </data>
+  <data name="SmartSustainedRampUpRpmPerSecDesc" xml:space="preserve">
+    <value>持续高温下的最高爬升速度，使峰值之间的升速保持平缓。不会低于升速速率。</value>
+  </data>
+  <data name="SmartPowerRangeHeader" xml:space="preserve">
+    <value>智能自动功率范围</value>
+  </data>
+  <data name="SmartPowerRangeNote" xml:space="preserve">
+    <value>智能自动控制在这些数值之间将功耗映射为 0–100% 负载。风扇转速中最多 40% 来自负载。</value>
+  </data>
+  <data name="SmartCpuIdlePowerWLabel" xml:space="preserve">
+    <value>CPU 空闲功耗（W）</value>
+  </data>
+  <data name="SmartCpuIdlePowerWDesc" xml:space="preserve">
+    <value>CPU 功耗不高于此值时视为空闲。</value>
+  </data>
+  <data name="SmartCpuFullPowerWLabel" xml:space="preserve">
+    <value>CPU 满载功耗（W）</value>
+  </data>
+  <data name="SmartCpuFullPowerWDesc" xml:space="preserve">
+    <value>视为满载的 CPU 功耗。建议设为 CPU 长时功耗限制。</value>
+  </data>
+  <data name="SmartGpuIdlePowerWLabel" xml:space="preserve">
+    <value>GPU 空闲功耗（W）</value>
+  </data>
+  <data name="SmartGpuIdlePowerWDesc" xml:space="preserve">
+    <value>GPU 功耗不高于此值时视为空闲。</value>
+  </data>
+  <data name="SmartGpuFullPowerWLabel" xml:space="preserve">
+    <value>GPU 满载功耗（W）</value>
+  </data>
+  <data name="SmartGpuFullPowerWDesc" xml:space="preserve">
+    <value>视为满载的 GPU 功耗。建议设为 GPU TGP 加动态加速功耗。</value>
+  </data>
+  <data name="CriticalOverrideHeader" xml:space="preserve">
+    <value>临界温度覆盖</value>
+  </data>
+  <data name="CriticalTempHoldSecondsLabel" xml:space="preserve">
+    <value>临界温度保持（秒）</value>
+  </data>
+  <data name="CriticalTempHoldSecondsDesc" xml:space="preserve">
+    <value>较热芯片需在临界温度及以上持续多久，两个风扇才切换到全速。短暂的加速尖峰会被忽略。0 表示立即响应。</value>
+  </data>
+  <data name="SyncPowerRangeWithPowerMode" xml:space="preserve">
+    <value>与电源模式同步</value>
+  </data>
+  <data name="SyncPowerRangeWithPowerModeDesc" xml:space="preserve">
+    <value>从当前使用的电源模式获取满载功耗：Legion Toolkit 中的自定义模式预设，或安静、均衡、性能模式的固件默认值。CPU 使用长时功耗限制，GPU 使用 TGP 加动态加速。空闲功耗仍需手动设置。</value>
+  </data>
+  <data name="SyncPowerRangeValues" xml:space="preserve">
+    <value>{0}：CPU {1}，GPU {2}</value>
+  </data>
+  <data name="SyncPowerRangeUnavailable" xml:space="preserve">
+    <value>此设备暂时无法获取电源模式功耗限制，将使用手动设置的数值。</value>
+  </data>
+  <data name="SyncPowerRangeCustomMode" xml:space="preserve">
+    <value>自定义</value>
+  </data>
 </root>

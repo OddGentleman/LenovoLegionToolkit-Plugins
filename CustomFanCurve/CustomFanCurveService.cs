@@ -36,6 +36,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private const int ModeSwitchSettleMs = 5000;
         private const int ModeSwitchMatchToleranceRpm = 200;
         private long _lastModeSwitchTicks;
+        private long _criticalSinceTicks;
         private bool _powerModeFeatureBroken;
         private int _uiOpenCount;
         private int _isProcessing;
@@ -330,6 +331,27 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
         }
 
+        // Critical Override Hold: Boost spikes reach the critical temperature for a second or two, too briefly for the fans to
+        // help, so full speed waits until the raw temperature has stayed at or above it for CriticalTempHoldSeconds.
+        private bool IsCriticalSustained(float maxTemp, int criticalTemp)
+        {
+            if (criticalTemp <= 0 || maxTemp < criticalTemp)
+            {
+                Interlocked.Exchange(ref _criticalSinceTicks, 0);
+                return false;
+            }
+
+            long now = DateTime.UtcNow.Ticks;
+            long since = Interlocked.CompareExchange(ref _criticalSinceTicks, now, 0);
+            if (since == 0) since = now;
+
+            double holdSeconds = Math.Max(0, _configManager.Settings.CriticalTempHoldSeconds);
+            bool sustained = now - since >= TimeSpan.FromSeconds(holdSeconds).Ticks;
+            if (!sustained)
+                Logger.Debug($"Critical temperature reached (maxTemp={maxTemp:F0} >= {criticalTemp}), waiting {holdSeconds:F1}s before full speed");
+            return sustained;
+        }
+
         private async Task ProcessAsync(HardwareSensorSnapshot snapshot)
         {
             if (!_isEnabled && !_isFullSpeed) return;
@@ -348,14 +370,15 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             var results = new Dictionary<int, (bool ShouldWrite, int TargetRpm, int CurrentRpm, float Temp)>();
 
             var criticalTemp = _configManager.Settings.CriticalTemp;
+            bool isCritical = IsCriticalSustained(Math.Max(cpuTemp, gpuTemp), criticalTemp);
             foreach (var entry in _configManager.GetAllEntries())
             {
                 var temp = GetTemperatureForFan(entry, _hardware.AvailableFanIds, cpuTemp, gpuTemp);
 
-                if (!_isFullSpeed && criticalTemp > 0 && Math.Max(cpuTemp, gpuTemp) >= criticalTemp)
+                if (!_isFullSpeed && isCritical)
                 {
                     await ProcessFullSpeed(entry, temp).ConfigureAwait(false);
-                    Logger.Debug($"Fan{entry.FanId}: CRITICAL TEMP override (maxTemp={Math.Max(cpuTemp, gpuTemp):F0} >= criticalTemp={criticalTemp})");
+                    Logger.Debug($"Fan{entry.FanId}: CRITICAL TEMP override (maxTemp={Math.Max(cpuTemp, gpuTemp):F0} >= criticalTemp={criticalTemp} for {_configManager.Settings.CriticalTempHoldSeconds:F1}s)");
                     continue;
                 }
 
@@ -980,6 +1003,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     var state = await _powerModeFeature.GetStateAsync()
                         .WaitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token).ConfigureAwait(false);
                     _currentModeName = state.ToString();
+                    PowerRangeSource.SetPowerMode(state);
                     var isMax = state == PowerModeState.GodMode;
                     Logger.Debug($"CheckMaxPerf: PowerModeFeature state={state} isMaxPerf={isMax}");
                     return isMax;

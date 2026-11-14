@@ -604,4 +604,142 @@ With spin-up boost enabled, the system briefly runs the fan at a higher RPM befo
   <data name="WriteEachCycleDesc" xml:space="preserve">
     <value>Write max RPM every calculation cycle in full speed mode</value>
   </data>
+  <data name="SpikeFilterTimingHeader" xml:space="preserve">
+    <value>Spike Filter Timing</value>
+  </data>
+  <data name="SpikeFilterTimingNote" xml:space="preserve">
+    <value>Used by the Smart Auto Spike Filter and the Curve Spike Filter, whichever is on.</value>
+  </data>
+  <data name="SmartSpikeIgnoreSecondsLabel" xml:space="preserve">
+    <value>Spike Wait (s)</value>
+  </data>
+  <data name="SmartSpikeIgnoreSecondsDesc" xml:space="preserve">
+    <value>How long a higher demand must last before the fans start ramping up. Shrinks to 0 between the urgency start and full temperatures.</value>
+  </data>
+  <data name="SmartRampUpRpmPerSecLabel" xml:space="preserve">
+    <value>Ramp-Up Rate (RPM/s)</value>
+  </data>
+  <data name="SmartRampUpRpmPerSecDesc" xml:space="preserve">
+    <value>How fast the fans climb once a rise is accepted, while the temperature is below the urgency start temperature.</value>
+  </data>
+  <data name="SmartUrgentRampUpRpmPerSecLabel" xml:space="preserve">
+    <value>Urgent Ramp-Up Rate (RPM/s)</value>
+  </data>
+  <data name="SmartUrgentRampUpRpmPerSecDesc" xml:space="preserve">
+    <value>Climb rate at the urgency full temperature. Between the urgency temperatures the rate scales from Ramp-Up Rate to this.</value>
+  </data>
+  <data name="SmartUrgencyStartTempLabel" xml:space="preserve">
+    <value>Urgency Start Temperature (°C)</value>
+  </data>
+  <data name="SmartUrgencyStartTempDesc" xml:space="preserve">
+    <value>Temperature where the spike wait starts shrinking and ramp-ups start speeding up.</value>
+  </data>
+  <data name="SmartUrgencyFullTempLabel" xml:space="preserve">
+    <value>Urgency Full Temperature (°C)</value>
+  </data>
+  <data name="SmartUrgencyFullTempDesc" xml:space="preserve">
+    <value>Temperature where the spike wait is gone and the fans climb at the urgent rate.</value>
+  </data>
+  <data name="SmartDecreaseHoldSecondsLabel" xml:space="preserve">
+    <value>Decrease Hold (s)</value>
+  </data>
+  <data name="SmartDecreaseHoldSecondsDesc" xml:space="preserve">
+    <value>How long the fans keep their speed after demand drops, before gliding down.</value>
+  </data>
+  <data name="SmartRampDownRpmPerSecLabel" xml:space="preserve">
+    <value>Ramp-Down Rate (RPM/s)</value>
+  </data>
+  <data name="SmartRampDownRpmPerSecDesc" xml:space="preserve">
+    <value>How fast the fans glide down after the hold.</value>
+  </data>
+  <data name="SustainedHeatHeader" xml:space="preserve">
+    <value>Sustained Heat</value>
+  </data>
+  <data name="SustainedHeatNote" xml:space="preserve">
+    <value>Under sustained heat, such as gaming, the spike filter holds longer and moves more gently, so the fans stay steady between peaks.</value>
+  </data>
+  <data name="SmartSustainedWindowSecondsLabel" xml:space="preserve">
+    <value>Averaging Time (s)</value>
+  </data>
+  <data name="SmartSustainedWindowSecondsDesc" xml:space="preserve">
+    <value>How many seconds of the hotter chip's temperature are averaged to detect sustained heat.</value>
+  </data>
+  <data name="SmartSustainedTempLabel" xml:space="preserve">
+    <value>Sustained Heat Temperature (°C)</value>
+  </data>
+  <data name="SmartSustainedTempDesc" xml:space="preserve">
+    <value>The averaged temperature counts as sustained heat at or above this value.</value>
+  </data>
+  <data name="SmartSustainedHoldSecondsLabel" xml:space="preserve">
+    <value>Sustained Decrease Hold (s)</value>
+  </data>
+  <data name="SmartSustainedHoldSecondsDesc" xml:space="preserve">
+    <value>Hold before gliding down under sustained heat. The longer of this and Decrease Hold applies.</value>
+  </data>
+  <data name="SmartSustainedRampDownRpmPerSecLabel" xml:space="preserve">
+    <value>Sustained Ramp-Down Rate (RPM/s)</value>
+  </data>
+  <data name="SmartSustainedRampDownRpmPerSecDesc" xml:space="preserve">
+    <value>Glide-down rate under sustained heat. The slower of this and Ramp-Down Rate applies.</value>
+  </data>
+  <data name="SmartSustainedRampUpRpmPerSecLabel" xml:space="preserve">
+    <value>Sustained Ramp-Up Rate (RPM/s)</value>
+  </data>
+  <data name="SmartSustainedRampUpRpmPerSecDesc" xml:space="preserve">
+    <value>Highest climb rate under sustained heat, so rises stay gentle between peaks. Never lower than Ramp-Up Rate.</value>
+  </data>
+  <data name="SmartPowerRangeHeader" xml:space="preserve">
+    <value>Smart Auto Power Range</value>
+  </data>
+  <data name="SmartPowerRangeNote" xml:space="preserve">
+    <value>Smart Auto maps power draw onto 0–100% load between these values. Up to 40% of the fan speed comes from load.</value>
+  </data>
+  <data name="SmartCpuIdlePowerWLabel" xml:space="preserve">
+    <value>CPU Idle Power (W)</value>
+  </data>
+  <data name="SmartCpuIdlePowerWDesc" xml:space="preserve">
+    <value>CPU power at or below which the CPU counts as idle.</value>
+  </data>
+  <data name="SmartCpuFullPowerWLabel" xml:space="preserve">
+    <value>CPU Full-Load Power (W)</value>
+  </data>
+  <data name="SmartCpuFullPowerWDesc" xml:space="preserve">
+    <value>CPU power that counts as full load. Set it to the CPU long-term power limit.</value>
+  </data>
+  <data name="SmartGpuIdlePowerWLabel" xml:space="preserve">
+    <value>GPU Idle Power (W)</value>
+  </data>
+  <data name="SmartGpuIdlePowerWDesc" xml:space="preserve">
+    <value>GPU power at or below which the GPU counts as idle.</value>
+  </data>
+  <data name="SmartGpuFullPowerWLabel" xml:space="preserve">
+    <value>GPU Full-Load Power (W)</value>
+  </data>
+  <data name="SmartGpuFullPowerWDesc" xml:space="preserve">
+    <value>GPU power that counts as full load. Set it to the GPU TGP plus Dynamic Boost.</value>
+  </data>
+  <data name="CriticalOverrideHeader" xml:space="preserve">
+    <value>Critical Temperature Override</value>
+  </data>
+  <data name="CriticalTempHoldSecondsLabel" xml:space="preserve">
+    <value>Critical Temperature Hold (s)</value>
+  </data>
+  <data name="CriticalTempHoldSecondsDesc" xml:space="preserve">
+    <value>How long the hotter chip must stay at or above the critical temperature before both fans go to full speed. Short boost spikes are ignored. 0 reacts at once.</value>
+  </data>
+  <data name="SyncPowerRangeWithPowerMode" xml:space="preserve">
+    <value>Sync with Power Mode</value>
+  </data>
+  <data name="SyncPowerRangeWithPowerModeDesc" xml:space="preserve">
+    <value>Takes the full-load power from the power mode in use: the Custom mode preset in Legion Toolkit, or the firmware defaults for Quiet, Balance and Performance. CPU uses the long-term power limit, GPU the TGP plus Dynamic Boost. Idle power stays manual.</value>
+  </data>
+  <data name="SyncPowerRangeValues" xml:space="preserve">
+    <value>{0}: CPU {1}, GPU {2}</value>
+  </data>
+  <data name="SyncPowerRangeUnavailable" xml:space="preserve">
+    <value>Power mode limits are not available yet on this device. The manual values are used.</value>
+  </data>
+  <data name="SyncPowerRangeCustomMode" xml:space="preserve">
+    <value>Custom</value>
+  </data>
 </root>

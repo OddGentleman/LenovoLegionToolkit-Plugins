@@ -60,6 +60,188 @@
 
                                 
 
+                            <TextBlock Style="{StaticResource SubHeader}" Text="{x:Static res:Resource.SpikeFilterTimingHeader}"/>
+                            <TextBlock Text="{x:Static res:Resource.SpikeFilterTimingNote}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                                <StackPanel IsEnabled="{Binding IsSpikeFilterActive}">
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartSpikeIgnoreSecondsLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartSpikeIgnoreSecondsDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartSpikeIgnoreSeconds}"/>
+                                    </wpfui:CardControl>
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartRampUpRpmPerSecLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartRampUpRpmPerSecDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartRampUpRpmPerSec}"/>
+                                    </wpfui:CardControl>
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartUrgentRampUpRpmPerSecLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartUrgentRampUpRpmPerSecDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartUrgentRampUpRpmPerSec}"/>
+                                    </wpfui:CardControl>
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartUrgencyStartTempLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartUrgencyStartTempDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartUrgencyStartTemp}"/>
+                                    </wpfui:CardControl>
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartUrgencyFullTempLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartUrgencyFullTempDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartUrgencyFullTemp}"/>
+                                    </wpfui:CardControl>
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartDecreaseHoldSecondsLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartDecreaseHoldSecondsDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartDecreaseHoldSeconds}"/>
+                                    </wpfui:CardControl>
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartRampDownRpmPerSecLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartRampDownRpmPerSecDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartRampDownRpmPerSec}"/>
+                                    </wpfui:CardControl>
+                                </StackPanel>
+
+                            <TextBlock Style="{StaticResource SubHeader}" Text="{x:Static res:Resource.SustainedHeatHeader}"/>
+                            <TextBlock Text="{x:Static res:Resource.SustainedHeatNote}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                                <StackPanel IsEnabled="{Binding IsSpikeFilterActive}">
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartSustainedWindowSecondsLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartSustainedWindowSecondsDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartSustainedWindowSeconds}"/>
+                                    </wpfui:CardControl>
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartSustainedTempLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartSustainedTempDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartSustainedTemp}"/>
+                                    </wpfui:CardControl>
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartSustainedHoldSecondsLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartSustainedHoldSecondsDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartSustainedHoldSeconds}"/>
+                                    </wpfui:CardControl>
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartSustainedRampDownRpmPerSecLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartSustainedRampDownRpmPerSecDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartSustainedRampDownRpmPerSec}"/>
+                                    </wpfui:CardControl>
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartSustainedRampUpRpmPerSecLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartSustainedRampUpRpmPerSecDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartSustainedRampUpRpmPerSec}"/>
+                                    </wpfui:CardControl>
+                                </StackPanel>
+
+                            <TextBlock Style="{StaticResource SubHeader}" Text="{x:Static res:Resource.SmartPowerRangeHeader}"/>
+                            <TextBlock Text="{x:Static res:Resource.SmartPowerRangeNote}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                                <StackPanel IsEnabled="{Binding IsSmartAutoEnabled}">
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SyncPowerRangeWithPowerMode}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SyncPowerRangeWithPowerModeDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding PowerModePowerRangeText}" FontSize="11" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:ToggleSwitch VerticalAlignment="Center" IsChecked="{Binding SyncPowerRangeWithPowerMode}"/>
+                                    </wpfui:CardControl>
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartCpuIdlePowerWLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartCpuIdlePowerWDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartCpuIdlePowerW}"/>
+                                    </wpfui:CardControl>
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12" IsEnabled="{Binding IsPowerRangeManual}">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartCpuFullPowerWLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartCpuFullPowerWDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartCpuFullPowerW}"/>
+                                    </wpfui:CardControl>
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartGpuIdlePowerWLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartGpuIdlePowerWDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartGpuIdlePowerW}"/>
+                                    </wpfui:CardControl>
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12" IsEnabled="{Binding IsPowerRangeManual}">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartGpuFullPowerWLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartGpuFullPowerWDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SmartGpuFullPowerW}"/>
+                                    </wpfui:CardControl>
+                                </StackPanel>
+
+                            <TextBlock Style="{StaticResource SubHeader}" Text="{x:Static res:Resource.CriticalOverrideHeader}"/>
+                                <StackPanel>
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.CriticalTempHoldSecondsLabel}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.CriticalTempHoldSecondsDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding CriticalTempHoldSeconds}"/>
+                                    </wpfui:CardControl>
+                                </StackPanel>
+
                             <TextBlock Style="{StaticResource SubHeader}" Text="{x:Static res:Resource.UiAndMonitoring}"/>
                             
                                     <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">

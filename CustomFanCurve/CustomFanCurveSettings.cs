@@ -36,6 +36,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         public bool UseCachedSnapshotForForcedRefresh { get; set; } = true;
         public bool EnableMaxFanWriteEachCycle { get; set; } = false;
         public int CriticalTemp { get; set; } = 95;
+        public double CriticalTempHoldSeconds { get; set; } = 2.0;
 
         public double EmaAlpha { get; set; } = 0.2;
         public int StepDownRateRpmPerSec { get; set; } = 400;
@@ -72,6 +73,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         public int SmartCpuFullPowerW { get; set; } = 65;
         public int SmartGpuIdlePowerW { get; set; } = 20;
         public int SmartGpuFullPowerW { get; set; } = 65;
+        public bool SyncPowerRangeWithPowerMode { get; set; } = false;
         public bool SyncFanLevel { get; set; } = false;
         public bool EnablePredictiveEngine { get; set; } = false;
         public bool EnableHysteresis { get; set; } = false;

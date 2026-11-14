@@ -1,4 +1,5 @@
 using System;
+using LenovoLegionToolkit.Lib;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -53,6 +54,24 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             _safeMinTemp = s.SafeMinTemp;
             _safeMaxTemp = s.SafeMaxTemp;
             _criticalTemp = s.CriticalTemp;
+            _smartSpikeIgnoreSeconds = s.SmartSpikeIgnoreSeconds;
+            _smartRampUpRpmPerSec = s.SmartRampUpRpmPerSec;
+            _smartUrgentRampUpRpmPerSec = s.SmartUrgentRampUpRpmPerSec;
+            _smartUrgencyStartTemp = s.SmartUrgencyStartTemp;
+            _smartUrgencyFullTemp = s.SmartUrgencyFullTemp;
+            _smartDecreaseHoldSeconds = s.SmartDecreaseHoldSeconds;
+            _smartRampDownRpmPerSec = s.SmartRampDownRpmPerSec;
+            _smartSustainedWindowSeconds = s.SmartSustainedWindowSeconds;
+            _smartSustainedTemp = s.SmartSustainedTemp;
+            _smartSustainedHoldSeconds = s.SmartSustainedHoldSeconds;
+            _smartSustainedRampDownRpmPerSec = s.SmartSustainedRampDownRpmPerSec;
+            _smartSustainedRampUpRpmPerSec = s.SmartSustainedRampUpRpmPerSec;
+            _smartCpuIdlePowerW = s.SmartCpuIdlePowerW;
+            _smartCpuFullPowerW = s.SmartCpuFullPowerW;
+            _smartGpuIdlePowerW = s.SmartGpuIdlePowerW;
+            _smartGpuFullPowerW = s.SmartGpuFullPowerW;
+            _syncPowerRangeWithPowerMode = s.SyncPowerRangeWithPowerMode;
+            _criticalTempHoldSeconds = s.CriticalTempHoldSeconds;
             _safeMaxPercentAtMaxTemp = s.SafeMaxPercentAtMaxTemp;
 
             _enableAcousticOffset = s.EnableAcousticOffset;
@@ -76,6 +95,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         public void SaveAll()
         {
+            // One file write and one refresh for the whole window, instead of one per setting.
+            using var batch = _configManager.BeginBatch();
             Save(nameof(CustomFanCurveSettings.IsCustomFanEnabled), _isCustomFanEnabled);
             Save(nameof(CustomFanCurveSettings.ApplyToAllPowerModes), _applyToAllPowerModes);
             Save(nameof(CustomFanCurveSettings.DebugMode), _debugMode);
@@ -111,6 +132,24 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             Save(nameof(CustomFanCurveSettings.SafeMinTemp), _safeMinTemp);
             Save(nameof(CustomFanCurveSettings.SafeMaxTemp), _safeMaxTemp);
             Save(nameof(CustomFanCurveSettings.CriticalTemp), _criticalTemp);
+            Save(nameof(CustomFanCurveSettings.SmartSpikeIgnoreSeconds), _smartSpikeIgnoreSeconds);
+            Save(nameof(CustomFanCurveSettings.SmartRampUpRpmPerSec), _smartRampUpRpmPerSec);
+            Save(nameof(CustomFanCurveSettings.SmartUrgentRampUpRpmPerSec), _smartUrgentRampUpRpmPerSec);
+            Save(nameof(CustomFanCurveSettings.SmartUrgencyStartTemp), _smartUrgencyStartTemp);
+            Save(nameof(CustomFanCurveSettings.SmartUrgencyFullTemp), _smartUrgencyFullTemp);
+            Save(nameof(CustomFanCurveSettings.SmartDecreaseHoldSeconds), _smartDecreaseHoldSeconds);
+            Save(nameof(CustomFanCurveSettings.SmartRampDownRpmPerSec), _smartRampDownRpmPerSec);
+            Save(nameof(CustomFanCurveSettings.SmartSustainedWindowSeconds), _smartSustainedWindowSeconds);
+            Save(nameof(CustomFanCurveSettings.SmartSustainedTemp), _smartSustainedTemp);
+            Save(nameof(CustomFanCurveSettings.SmartSustainedHoldSeconds), _smartSustainedHoldSeconds);
+            Save(nameof(CustomFanCurveSettings.SmartSustainedRampDownRpmPerSec), _smartSustainedRampDownRpmPerSec);
+            Save(nameof(CustomFanCurveSettings.SmartSustainedRampUpRpmPerSec), _smartSustainedRampUpRpmPerSec);
+            Save(nameof(CustomFanCurveSettings.SmartCpuIdlePowerW), _smartCpuIdlePowerW);
+            Save(nameof(CustomFanCurveSettings.SmartCpuFullPowerW), _smartCpuFullPowerW);
+            Save(nameof(CustomFanCurveSettings.SmartGpuIdlePowerW), _smartGpuIdlePowerW);
+            Save(nameof(CustomFanCurveSettings.SmartGpuFullPowerW), _smartGpuFullPowerW);
+            Save(nameof(CustomFanCurveSettings.SyncPowerRangeWithPowerMode), _syncPowerRangeWithPowerMode);
+            Save(nameof(CustomFanCurveSettings.CriticalTempHoldSeconds), _criticalTempHoldSeconds);
             Save(nameof(CustomFanCurveSettings.SafeMaxPercentAtMaxTemp), _safeMaxPercentAtMaxTemp);
 
             Save(nameof(CustomFanCurveSettings.EnableAcousticOffset), _enableAcousticOffset);
@@ -267,6 +306,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         // The spike filter replaces calculation throttling and step-down gliding, in whichever mode it is on.
         public bool IsCalcSchedulingIgnored => _isSmartAutoEnabled ? _smartSpikeFilterEnabled : _curveSpikeFilterEnabled;
         public bool IsCalcSchedulingEnabled => !IsCalcSchedulingIgnored;
+        // The spike filter timings apply to whichever spike filter is on: Smart Auto's or the curve's.
+        public bool IsSpikeFilterActive => IsCalcSchedulingIgnored;
         // Spin-up boost only fires from 0 RPM, which Smart Auto never writes while holding the minimum.
         public bool IsSpinUpIgnored => _isSmartAutoEnabled && _smartHoldMinimumAtIdle;
         public bool IsSpinUpEnabled => !IsSpinUpIgnored;
@@ -276,6 +317,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             OnPropertyChanged(nameof(IsCurveOnlySettingsEnabled));
             OnPropertyChanged(nameof(IsCalcSchedulingIgnored));
             OnPropertyChanged(nameof(IsCalcSchedulingEnabled));
+            OnPropertyChanged(nameof(IsSpikeFilterActive));
             OnPropertyChanged(nameof(IsSpinUpIgnored));
             OnPropertyChanged(nameof(IsSpinUpEnabled));
         }
@@ -583,6 +625,166 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             set { if (_criticalTemp != value) { _criticalTemp = value; OnPropertyChanged(); } }
         }
 
+        // Spike filter, sustained heat, Smart Auto power range and critical hold, previously editable only in the config file.
+        private double _smartSpikeIgnoreSeconds;
+        public double SmartSpikeIgnoreSeconds
+        {
+            get => _smartSpikeIgnoreSeconds;
+            set { var v = Math.Max(0, value); if (Math.Abs(_smartSpikeIgnoreSeconds - v) > 0.0001) { _smartSpikeIgnoreSeconds = v; OnPropertyChanged(); } }
+        }
+
+        private int _smartRampUpRpmPerSec;
+        public int SmartRampUpRpmPerSec
+        {
+            get => _smartRampUpRpmPerSec;
+            set { var v = Math.Max(0, value); if (_smartRampUpRpmPerSec != v) { _smartRampUpRpmPerSec = v; OnPropertyChanged(); } }
+        }
+
+        private int _smartUrgentRampUpRpmPerSec;
+        public int SmartUrgentRampUpRpmPerSec
+        {
+            get => _smartUrgentRampUpRpmPerSec;
+            set { var v = Math.Max(0, value); if (_smartUrgentRampUpRpmPerSec != v) { _smartUrgentRampUpRpmPerSec = v; OnPropertyChanged(); } }
+        }
+
+        private int _smartUrgencyStartTemp;
+        public int SmartUrgencyStartTemp
+        {
+            get => _smartUrgencyStartTemp;
+            set { var v = Math.Max(0, value); if (_smartUrgencyStartTemp != v) { _smartUrgencyStartTemp = v; OnPropertyChanged(); } }
+        }
+
+        private int _smartUrgencyFullTemp;
+        public int SmartUrgencyFullTemp
+        {
+            get => _smartUrgencyFullTemp;
+            set { var v = Math.Max(0, value); if (_smartUrgencyFullTemp != v) { _smartUrgencyFullTemp = v; OnPropertyChanged(); } }
+        }
+
+        private double _smartDecreaseHoldSeconds;
+        public double SmartDecreaseHoldSeconds
+        {
+            get => _smartDecreaseHoldSeconds;
+            set { var v = Math.Max(0, value); if (Math.Abs(_smartDecreaseHoldSeconds - v) > 0.0001) { _smartDecreaseHoldSeconds = v; OnPropertyChanged(); } }
+        }
+
+        private int _smartRampDownRpmPerSec;
+        public int SmartRampDownRpmPerSec
+        {
+            get => _smartRampDownRpmPerSec;
+            set { var v = Math.Max(0, value); if (_smartRampDownRpmPerSec != v) { _smartRampDownRpmPerSec = v; OnPropertyChanged(); } }
+        }
+
+        private double _smartSustainedWindowSeconds;
+        public double SmartSustainedWindowSeconds
+        {
+            get => _smartSustainedWindowSeconds;
+            set { var v = Math.Max(0, value); if (Math.Abs(_smartSustainedWindowSeconds - v) > 0.0001) { _smartSustainedWindowSeconds = v; OnPropertyChanged(); } }
+        }
+
+        private int _smartSustainedTemp;
+        public int SmartSustainedTemp
+        {
+            get => _smartSustainedTemp;
+            set { var v = Math.Max(0, value); if (_smartSustainedTemp != v) { _smartSustainedTemp = v; OnPropertyChanged(); } }
+        }
+
+        private double _smartSustainedHoldSeconds;
+        public double SmartSustainedHoldSeconds
+        {
+            get => _smartSustainedHoldSeconds;
+            set { var v = Math.Max(0, value); if (Math.Abs(_smartSustainedHoldSeconds - v) > 0.0001) { _smartSustainedHoldSeconds = v; OnPropertyChanged(); } }
+        }
+
+        private int _smartSustainedRampDownRpmPerSec;
+        public int SmartSustainedRampDownRpmPerSec
+        {
+            get => _smartSustainedRampDownRpmPerSec;
+            set { var v = Math.Max(0, value); if (_smartSustainedRampDownRpmPerSec != v) { _smartSustainedRampDownRpmPerSec = v; OnPropertyChanged(); } }
+        }
+
+        private int _smartSustainedRampUpRpmPerSec;
+        public int SmartSustainedRampUpRpmPerSec
+        {
+            get => _smartSustainedRampUpRpmPerSec;
+            set { var v = Math.Max(0, value); if (_smartSustainedRampUpRpmPerSec != v) { _smartSustainedRampUpRpmPerSec = v; OnPropertyChanged(); } }
+        }
+
+        private int _smartCpuIdlePowerW;
+        public int SmartCpuIdlePowerW
+        {
+            get => _smartCpuIdlePowerW;
+            set { var v = Math.Max(0, value); if (_smartCpuIdlePowerW != v) { _smartCpuIdlePowerW = v; OnPropertyChanged(); } }
+        }
+
+        private int _smartCpuFullPowerW;
+        public int SmartCpuFullPowerW
+        {
+            get => _smartCpuFullPowerW;
+            set { var v = Math.Max(0, value); if (_smartCpuFullPowerW != v) { _smartCpuFullPowerW = v; OnPropertyChanged(); } }
+        }
+
+        private int _smartGpuIdlePowerW;
+        public int SmartGpuIdlePowerW
+        {
+            get => _smartGpuIdlePowerW;
+            set { var v = Math.Max(0, value); if (_smartGpuIdlePowerW != v) { _smartGpuIdlePowerW = v; OnPropertyChanged(); } }
+        }
+
+        private int _smartGpuFullPowerW;
+        public int SmartGpuFullPowerW
+        {
+            get => _smartGpuFullPowerW;
+            set { var v = Math.Max(0, value); if (_smartGpuFullPowerW != v) { _smartGpuFullPowerW = v; OnPropertyChanged(); } }
+        }
+
+        private bool _syncPowerRangeWithPowerMode;
+        public bool SyncPowerRangeWithPowerMode
+        {
+            get => _syncPowerRangeWithPowerMode;
+            set
+            {
+                if (_syncPowerRangeWithPowerMode != value)
+                {
+                    _syncPowerRangeWithPowerMode = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsPowerRangeManual));
+                    OnPropertyChanged(nameof(PowerModePowerRangeText));
+                }
+            }
+        }
+
+        // The full-load fields are greyed out while they follow the power mode.
+        public bool IsPowerRangeManual => !_syncPowerRangeWithPowerMode;
+
+        public string PowerModePowerRangeText
+        {
+            get
+            {
+                PowerRangeSource.EnsureFirmwareDefaultsLoaded();
+                var current = PowerRangeSource.CurrentMode;
+                var lines = new System.Collections.Generic.List<string>();
+                foreach (var mode in new[] { PowerModeState.Quiet, PowerModeState.Balance, PowerModeState.Performance, PowerModeState.Extreme, PowerModeState.GodMode })
+                {
+                    var limits = PowerRangeSource.GetLimits(mode);
+                    if (!limits.HasAny) continue;
+                    string name = mode == PowerModeState.GodMode ? Resources.Resource.SyncPowerRangeCustomMode : mode.ToString();
+                    string cpu = limits.CpuFullW is { } c ? $"{c} W" : "–";
+                    string gpu = limits.GpuFullW is { } g ? $"{g} W ({limits.GpuTgpW} + {limits.GpuBoostW ?? 0})" : "–";
+                    lines.Add((mode == current ? "▶ " : "   ") + string.Format(Resources.Resource.SyncPowerRangeValues, name, cpu, gpu));
+                }
+
+                return lines.Count == 0 ? Resources.Resource.SyncPowerRangeUnavailable : string.Join("\n", lines);
+            }
+        }
+
+        private double _criticalTempHoldSeconds;
+        public double CriticalTempHoldSeconds
+        {
+            get => _criticalTempHoldSeconds;
+            set { var v = Math.Max(0, value); if (Math.Abs(_criticalTempHoldSeconds - v) > 0.0001) { _criticalTempHoldSeconds = v; OnPropertyChanged(); } }
+        }
+
         private int _safeMaxPercentAtMaxTemp;
         public int SafeMaxPercentAtMaxTemp
         {
@@ -723,6 +925,24 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             SafeMinTemp = defaultSettings.SafeMinTemp;
             SafeMaxTemp = defaultSettings.SafeMaxTemp;
             CriticalTemp = defaultSettings.CriticalTemp;
+            SmartSpikeIgnoreSeconds = defaultSettings.SmartSpikeIgnoreSeconds;
+            SmartRampUpRpmPerSec = defaultSettings.SmartRampUpRpmPerSec;
+            SmartUrgentRampUpRpmPerSec = defaultSettings.SmartUrgentRampUpRpmPerSec;
+            SmartUrgencyStartTemp = defaultSettings.SmartUrgencyStartTemp;
+            SmartUrgencyFullTemp = defaultSettings.SmartUrgencyFullTemp;
+            SmartDecreaseHoldSeconds = defaultSettings.SmartDecreaseHoldSeconds;
+            SmartRampDownRpmPerSec = defaultSettings.SmartRampDownRpmPerSec;
+            SmartSustainedWindowSeconds = defaultSettings.SmartSustainedWindowSeconds;
+            SmartSustainedTemp = defaultSettings.SmartSustainedTemp;
+            SmartSustainedHoldSeconds = defaultSettings.SmartSustainedHoldSeconds;
+            SmartSustainedRampDownRpmPerSec = defaultSettings.SmartSustainedRampDownRpmPerSec;
+            SmartSustainedRampUpRpmPerSec = defaultSettings.SmartSustainedRampUpRpmPerSec;
+            SmartCpuIdlePowerW = defaultSettings.SmartCpuIdlePowerW;
+            SmartCpuFullPowerW = defaultSettings.SmartCpuFullPowerW;
+            SmartGpuIdlePowerW = defaultSettings.SmartGpuIdlePowerW;
+            SmartGpuFullPowerW = defaultSettings.SmartGpuFullPowerW;
+            SyncPowerRangeWithPowerMode = defaultSettings.SyncPowerRangeWithPowerMode;
+            CriticalTempHoldSeconds = defaultSettings.CriticalTempHoldSeconds;
             SafeMaxPercentAtMaxTemp = defaultSettings.SafeMaxPercentAtMaxTemp;
 
             EnableAcousticOffset = defaultSettings.EnableAcousticOffset;
