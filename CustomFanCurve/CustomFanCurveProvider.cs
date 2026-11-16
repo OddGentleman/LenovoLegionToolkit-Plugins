@@ -93,6 +93,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         public void Initialize(IExtensionContext context)
         {
+            CardClickToggle.Register();
+
             var storagePath = context.GetPluginStoragePath("CustomFanCurve");
             _pluginSettings = new PluginSettings(storagePath);
             ConfigManager = new CustomFanCurveConfigManager(_pluginSettings);

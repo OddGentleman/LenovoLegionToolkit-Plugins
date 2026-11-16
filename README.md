@@ -95,6 +95,8 @@ Custom mode changes apply on the next cycle, without a restart. Idle power stays
 
 **Saving settings applies them once.** The settings window saved each of its 65 settings separately, and every save rewrote the config file and triggered a power mode check and fan refresh: 70 mode checks within half a second in the debug log. Saving now writes only the settings that changed, with one file write and one refresh.
 
+**Clicking anywhere on a toggle card flips its switch.** As in Windows Settings, a click on the card's title, description or empty space toggles the switch, not only a click on the switch itself. It runs the same code as clicking the switch, so bindings and handlers behave the same. A card is skipped when it has anything else to interact with (a drop-down, number box, slider, button or a second switch), so cards like Always on USB still need their drop-down. The plugin hooks the card control type when it loads, so this applies to every card in Legion Toolkit, including its own pages, and to cards added in later versions, with no change to Legion Toolkit itself.
+
 **Settings for custom curves on this laptop:** turn on **Curve Spike Filter**, keep EMA at 0.35, and leave Hysteresis and Predictive Engine off. Keep the curve flat up to a few degrees above the idle temperature (this CPU idles around 56–61°C), so idle wobble doesn't move the fans.
 
 **Other settings for Smart Auto on this laptop:**
